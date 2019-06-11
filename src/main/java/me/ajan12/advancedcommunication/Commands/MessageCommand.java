@@ -186,6 +186,18 @@ public class MessageCommand implements CommandExecutor {
 
             }
 
+            //Building a String with the message to be sent to the player.
+            final StringBuilder message = new StringBuilder();
+            //Iterator integer.
+            int i = 1;
+            //Iterating over all the arguments that has a word of the message.
+            while (i < args.length) {
+                //Appending the StringBuilder with the words iterating over.
+                message.append(args[i]);
+                //Increasing the iterator integer to pass to the next word.
+                i++;
+            }
+
             //Checking if the sender is a Player to add their name into the message.
             if (sender instanceof Player) {
                 //Casting to Player to ease my work in the next lines.
@@ -195,11 +207,11 @@ public class MessageCommand implements CommandExecutor {
                 targetingPlayer.sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.AQUA + sendingPlayer.getDisplayName() +
                         ChatColor.GOLD + " ] -> [ " + ChatColor.RED + "YOU" + ChatColor.GOLD + " ] : " +
-                        ChatColor.RESET + args[1]);
+                        ChatColor.RESET + message.toString());
                 sendingPlayer.sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.RED + "YOU" +
                         ChatColor.GOLD + " ] -> [ " + ChatColor.AQUA + targetingPlayer.getDisplayName() + ChatColor.GOLD + " ] : " +
-                        ChatColor.RESET + args[1]);
+                        ChatColor.RESET + message.toString());
 
                 //Returning true because we don't want the usage to be shown.
                 return true;
@@ -209,11 +221,11 @@ public class MessageCommand implements CommandExecutor {
                 targetingPlayer.sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.DARK_RED + "CONSOLE" +
                         ChatColor.GOLD + " ] -> [ " + ChatColor.RED + "YOU" + ChatColor.GOLD + " ] : " +
-                        ChatColor.RESET + args[1]);
+                        ChatColor.RESET + message.toString());
                 Bukkit.getConsoleSender().sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.RED + "CONSOLE" +
                         ChatColor.GOLD + " ] -> [ " + ChatColor.AQUA + targetingPlayer.getDisplayName() + ChatColor.GOLD + " ] : " +
-                        ChatColor.RESET + args[1]);
+                        ChatColor.RESET + message.toString());
 
                 //Returning true because we don't want the usage to be shown.
                 return true;
