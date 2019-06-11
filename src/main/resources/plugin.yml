@@ -8,3 +8,4 @@ commands:
   message:
     description: Start a messaging session or send a single message to another player!
     aliases: [msg, privatemessage, private-message, pmsg, dm, dmsg, directmessage, direct-message]
+    usage: /message -> to un-focus OR /message <player> -> to focus/un-focus OR /message <player> <message> -> to send a 1 time only message.
