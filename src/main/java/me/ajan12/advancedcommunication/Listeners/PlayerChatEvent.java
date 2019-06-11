@@ -12,8 +12,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class PlayerChatEvent implements Listener {
 
-    //Priority is HIGHEST because we don't want the other plugins to do their jobs first. ESPECIALLY DISCORDSRV
-    @EventHandler(priority = EventPriority.HIGHEST)
+    //Priority is MONITOR because we don't want the other plugins to do their jobs first. ESPECIALLY DISCORDSRV
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onChat(AsyncPlayerChatEvent e) {
 
         //Checking if any other plugin cancels this.
