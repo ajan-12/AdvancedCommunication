@@ -12,8 +12,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class PlayerChatEvent implements Listener {
 
-    //Priority is LOW because we want the other plugins to do their jobs first.
-    @EventHandler(priority = EventPriority.LOW)
+    //Priority is HIGH because we don't want the other plugins to do their jobs first.
+    @EventHandler(priority = EventPriority.HIGH)
     public void onChat(AsyncPlayerChatEvent e) {
 
         //Checking if any other plugin cancels this.
@@ -34,11 +34,11 @@ public class PlayerChatEvent implements Listener {
         //Sending the message to both target player and sender player
         target.sendMessage(
                 ChatColor.GOLD + "[ " + ChatColor.AQUA + e.getPlayer().getDisplayName() +
-                ChatColor.GOLD + " ] -> [ " + ChatColor.RED + "YOU" + ChatColor.GOLD + " ] : " +
+                ChatColor.GOLD + " ] >> [ " + ChatColor.RED + "YOU" + ChatColor.GOLD + " ] » " +
                 ChatColor.RESET + e.getMessage());
         e.getPlayer().sendMessage(
                 ChatColor.GOLD + "[ " + ChatColor.RED + "YOU" +
-                ChatColor.GOLD + " ] -> [ " + ChatColor.AQUA + target.getDisplayName() + ChatColor.GOLD + " ] : " +
+                ChatColor.GOLD + " ] >> [ " + ChatColor.AQUA + target.getDisplayName() + ChatColor.GOLD + " ] » " +
                 ChatColor.RESET + e.getMessage());
 
         //Cancelling the event because we don't want to send multiple messages on chat.
