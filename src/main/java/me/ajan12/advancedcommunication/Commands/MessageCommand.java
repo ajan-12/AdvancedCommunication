@@ -207,7 +207,7 @@ public class MessageCommand implements CommandExecutor {
                 //Sending the message to both players.
                 targetingPlayer.sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.AQUA + sendingPlayer.getDisplayName() +
-                        ChatColor.GOLD + " ] >> [ " + ChatColor.RED + "YOU" + ChatColor.GOLD + " ] » " +
+                        ChatColor.GOLD + " ] >> [ " + ChatColor.RED + "You" + ChatColor.GOLD + " ] » " +
                         ChatColor.RESET + message.toString());
                 sendingPlayer.sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.RED + "YOU" +
@@ -221,7 +221,7 @@ public class MessageCommand implements CommandExecutor {
                 //Sending the message to both players.
                 targetingPlayer.sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.DARK_RED + "CONSOLE" +
-                        ChatColor.GOLD + " ] >> [ " + ChatColor.RED + "YOU" + ChatColor.GOLD + " ] » " +
+                        ChatColor.GOLD + " ] >> [ " + ChatColor.RED + "You" + ChatColor.GOLD + " ] » " +
                         ChatColor.RESET + message.toString());
                 Bukkit.getConsoleSender().sendMessage(
                         ChatColor.GOLD + "[ " + ChatColor.RED + "CONSOLE" +
