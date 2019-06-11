@@ -157,8 +157,8 @@ public class MessageCommand implements CommandExecutor {
 
             }
 
-        //2 arguments means that the player wants to send a message for this time only.
-        } else if (args.length == 2) {
+        //2+ arguments means that the player wants to send a message for this time only.
+        } else {
 
             //Getting the targetingPlayer that was stated in the argument.
             final Player targetingPlayer = Bukkit.getPlayer(args[0]);
@@ -208,7 +208,5 @@ public class MessageCommand implements CommandExecutor {
             }
 
         }
-
-        return false;
     }
 }
