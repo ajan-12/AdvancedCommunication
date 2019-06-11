@@ -136,10 +136,21 @@ public class MessageCommand implements CommandExecutor {
             //Getting the Player sender was focused on to remove it from the User.
             final Player focusedPlayer = senderUser.getFocusedPlayer();
 
-            //Checking if the User is focused on anyone
-            if (focusedPlayer.getUniqueId().equals(targetingPlayer.getUniqueId())) {
+            //Checking if the User is focused on anyone.
+            if (focusedPlayer == null) {
+                //The player isn't focused on anyone.
 
-                //Setting the focusingPlayer to null meaning the User is no longer focused on anyone
+                //Setting the focusingPlayer to the User wants to focus on.
+                senderUser.setFocusedPlayer(targetingPlayer);
+                sendingPlayer.sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully focused on player " + ChatColor.YELLOW + targetingPlayer.getName() + ChatColor.GREEN + ".");
+
+                //Returning true because we don't want the usage to be shown.
+                return true;
+
+            } else if (focusedPlayer.getUniqueId().equals(targetingPlayer.getUniqueId())) {
+                //The player is focused on the targeting player.
+
+                //Setting the focusingPlayer to null meaning the User is no longer focused on anyone.
                 senderUser.setFocusedPlayer(null);
                 sendingPlayer.sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully un-focused on player " + ChatColor.YELLOW + targetingPlayer.getName() + ChatColor.GREEN + ".");
 
@@ -147,8 +158,9 @@ public class MessageCommand implements CommandExecutor {
                 return true;
 
             } else {
+                //The player is focused on someone else.
 
-                //Setting the focusingPlayer to the User wants to focus on
+                //Setting the focusingPlayer to the User wants to focus on.
                 senderUser.setFocusedPlayer(targetingPlayer);
                 sendingPlayer.sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully focused on player " + ChatColor.YELLOW + targetingPlayer.getName() + ChatColor.GREEN + ".");
 
