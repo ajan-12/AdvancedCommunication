@@ -1,6 +1,7 @@
 package me.ajan12.advancedcommunication.Utilities;
 
 import me.ajan12.advancedcommunication.Objects.User;
+
 import org.bukkit.entity.Player;
 
 public class GeneralUtils {
