@@ -1,7 +1,6 @@
 name: AdvancedCommunication
 version: ${project.version}
 main: me.ajan12.advancedcommunication.AdvancedCommunication
-api-version: 1.13
 authors: [ajan_12]
 description: Advanced communication methods for your Spigot server!
 
