@@ -5,7 +5,45 @@ authors: [ajan_12]
 description: Advanced communication methods for your Spigot server!
 
 commands:
+
+  advancedcommunication:
+    description: Main command of the plugin.
+    aliases: [ac, advc, acomm, advcomm]
+
   message:
     description: Start a messaging session or send a single message to another player!
     aliases: [msg, privatemessage, private-message, pmsg, dm, dmsg, directmessage, direct-message]
     usage: /message -> to un-focus OR /message <player> -> to focus/un-focus OR /message <player> <message> -> to send a 1 time only message.
+
+permissions:
+
+  #### Help page
+  advancedcommunication.command.help:
+    description: The permission node that defines if a player is able to view the help page.
+    default: op
+
+  #### Spy toggling command
+  advancedcommunication.command.spy.other:
+    description: The permission node that defines if a player is able to toggle spying of someone else.
+    children:
+      advancedcommunication.command.help: true
+    default: op
+
+  advancedcommunication.command.spy.self:
+    description: The permission node that defines if a player is able to toggle spying of themselves.
+    children:
+      advancedcommunication.command.help: true
+    default: op
+
+  advancedcommunication.command.spy.*:
+    description: The permission node that defines if a player is able to toggle spying of themselves and of someone else.
+    children:
+      advancedcommunication.command.spy.other: true
+      advancedcommunication.command.spy.self: true
+      advancedcommunication.command.help: true
+    default: op
+
+  #### Spy
+  advancedcommunication.spy:
+    description: The permission node that defines if a player is spying.
+    default: op

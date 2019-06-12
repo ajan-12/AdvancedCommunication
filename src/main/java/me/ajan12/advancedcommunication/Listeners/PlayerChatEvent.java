@@ -36,15 +36,8 @@ public class PlayerChatEvent implements Listener {
         //Checking the focused player is null, if so we don't need to do anything because player isn't focused on anyone.
         if (target == null) return;
 
-        //Sending the message to both target player and sender player
-        target.sendMessage(
-                ChatColor.GOLD + "[" + ChatColor.AQUA + sender.getDisplayName() +
-                ChatColor.GOLD + "] >> [" + ChatColor.RED + "You" + ChatColor.GOLD + "] » " +
-                ChatColor.RESET + e.getMessage());
-        sender.sendMessage(
-                ChatColor.GOLD + "[" + ChatColor.RED + "You" +
-                ChatColor.GOLD + "] >> [" + ChatColor.AQUA + target.getDisplayName() + ChatColor.GOLD + "] » " +
-                ChatColor.RESET + e.getMessage());
+        //Sending the messages.
+        GeneralUtils.sendMessageFocused(user, e.getMessage());
 
         //Cancelling the event because we don't want to send multiple messages on chat.
         e.setCancelled(true);

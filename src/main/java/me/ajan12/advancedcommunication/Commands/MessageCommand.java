@@ -205,28 +205,14 @@ public class MessageCommand implements CommandExecutor {
                 final Player sendingPlayer = (Player) sender;
 
                 //Sending the message to both players.
-                targetingPlayer.sendMessage(
-                        ChatColor.GOLD + "[" + ChatColor.AQUA + sendingPlayer.getDisplayName() +
-                        ChatColor.GOLD + "] >> [" + ChatColor.RED + "You" + ChatColor.GOLD + "] » " +
-                        ChatColor.RESET + message.toString());
-                sendingPlayer.sendMessage(
-                        ChatColor.GOLD + "[" + ChatColor.RED + "YOU" +
-                        ChatColor.GOLD + "] >> [" + ChatColor.AQUA + targetingPlayer.getDisplayName() + ChatColor.GOLD + "] » " +
-                        ChatColor.RESET + message.toString());
+                GeneralUtils.sendMessagePlayer(sendingPlayer, targetingPlayer, message.toString());
 
                 //Returning true because we don't want the usage to be shown.
                 return true;
             } else {
 
-                //Sending the message to both players.
-                targetingPlayer.sendMessage(
-                        ChatColor.GOLD + "[" + ChatColor.DARK_RED + "CONSOLE" +
-                        ChatColor.GOLD + "] >> [ " + ChatColor.RED + "You" + ChatColor.GOLD + "] » " +
-                        ChatColor.RESET + message.toString());
-                Bukkit.getConsoleSender().sendMessage(
-                        ChatColor.GOLD + "[" + ChatColor.RED + "CONSOLE" +
-                        ChatColor.GOLD + "] >> [" + ChatColor.AQUA + targetingPlayer.getDisplayName() + ChatColor.GOLD + "] » " +
-                        ChatColor.RESET + message.toString());
+                //Sending the message to both console and the player.
+                GeneralUtils.sendMessageConsole(targetingPlayer, message.toString());
 
                 //Returning true because we don't want the usage to be shown.
                 return true;

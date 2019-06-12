@@ -1,6 +1,7 @@
 package me.ajan12.advancedcommunication.Objects;
 
 import com.sun.istack.internal.Nullable;
+
 import org.bukkit.entity.Player;
 
 public class User {
