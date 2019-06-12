@@ -12,8 +12,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class PlayerChatEvent implements Listener {
 
-    //Priority is MONITOR because we don't want the other plugins to do their jobs first. ESPECIALLY DISCORDSRV
-    @EventHandler(priority = EventPriority.MONITOR)
+    //Priority is LOWEST because we don't want the other plugins to do their jobs first. ESPECIALLY DISCORDSRV
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent e) {
 
         //Checking if any other plugin cancels this.
@@ -21,8 +21,13 @@ public class PlayerChatEvent implements Listener {
         //Checking if the message is empty.
         if (e.getMessage().equals("")) return;
 
+        //Getting the sender player.
+        final Player sender = e.getPlayer();
+        //Checking if the sender player is null.
+        if (sender == null) return;
+
         //Getting the User the message sender corresponds to.
-        final User user = GeneralUtils.getUser(e.getPlayer());
+        final User user = GeneralUtils.getUser(sender);
         //Checking if the User is null.
         if (user == null) return;
 
@@ -33,16 +38,14 @@ public class PlayerChatEvent implements Listener {
 
         //Sending the message to both target player and sender player
         target.sendMessage(
-                ChatColor.GOLD + "[" + ChatColor.AQUA + e.getPlayer().getDisplayName() +
+                ChatColor.GOLD + "[" + ChatColor.AQUA + sender.getDisplayName() +
                 ChatColor.GOLD + "] >> [" + ChatColor.RED + "You" + ChatColor.GOLD + "] » " +
                 ChatColor.RESET + e.getMessage());
-        e.getPlayer().sendMessage(
+        sender.sendMessage(
                 ChatColor.GOLD + "[" + ChatColor.RED + "You" +
                 ChatColor.GOLD + "] >> [" + ChatColor.AQUA + target.getDisplayName() + ChatColor.GOLD + "] » " +
                 ChatColor.RESET + e.getMessage());
 
-        //Setting the message to null because we don't want to send multiple messages on chat.
-        e.setMessage(null);
         //Cancelling the event because we don't want to send multiple messages on chat.
         e.setCancelled(true);
     }
