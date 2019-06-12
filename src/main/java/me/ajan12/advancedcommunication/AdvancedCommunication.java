@@ -2,6 +2,7 @@ package me.ajan12.advancedcommunication;
 
 import me.ajan12.advancedcommunication.Commands.MainCommand.MainCommand;
 import me.ajan12.advancedcommunication.Commands.MessageCommand.MessageCommand;
+
 import me.ajan12.advancedcommunication.Listeners.PlayerChatEvent;
 import me.ajan12.advancedcommunication.Listeners.PlayerJoinEvent;
 import me.ajan12.advancedcommunication.Listeners.PlayerQuitEvent;

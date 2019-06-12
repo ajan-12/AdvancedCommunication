@@ -75,6 +75,8 @@ public class MessageCommand implements CommandExecutor {
         // 1 argument means that they are focusing or un-focusing on someone.
         } else if (args.length == 1) {
 
+            if (args[0].equals("help")) return HelpCommand.execute(sender);
+
             //Checking if the sender is a Player
             if (!(sender instanceof Player)) {
                 //Sender isn't a Player and so we send an error message.

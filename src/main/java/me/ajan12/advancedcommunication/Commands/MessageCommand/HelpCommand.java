@@ -15,6 +15,8 @@ class HelpCommand {
         player.sendMessage(pluginTag + ChatColor.DARK_AQUA + " ---------- " + ChatColor.GOLD + "/message HELP" + ChatColor.DARK_AQUA + " ---------- " + pluginTag);
         // -- "/msg" command.
         player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/msg" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Un-focuses if you are focused on a player.");
+        // -- "/msg help" command.
+        player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/msg help" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Shows this page.");
         // -- "/msg <player>" command.
         player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/msg <player>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Focuses/Un-focuses on a player.");
         // -- "/msg <player> <message>" command.
