@@ -6,7 +6,7 @@
 
     <groupId>me.ajan12</groupId>
     <artifactId>AdvancedCommunication</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
 
     <name>AdvancedCommunication</name>
@@ -63,6 +63,11 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <!-- Protocollib Repo -->
+        <repository>
+            <id>dmulloy2-repo</id>
+            <url>http://repo.dmulloy2.net/nexus/repository/public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -71,6 +76,11 @@
             <artifactId>spigot-api</artifactId>
             <version>1.12.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>4.4.0</version>
         </dependency>
     </dependencies>
 </project>

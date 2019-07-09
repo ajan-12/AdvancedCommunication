@@ -2,6 +2,7 @@ name: AdvancedCommunication
 version: ${project.version}
 main: me.ajan12.advancedcommunication.AdvancedCommunication
 authors: [ajan_12]
+#depend: [ProtocolLib]
 description: Advanced communication methods for your Spigot server!
 
 commands:
