@@ -6,8 +6,9 @@ import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
 import org.bukkit.ChatColor;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
 
 public class DataStorage {
 
@@ -26,17 +27,17 @@ public class DataStorage {
     public static String pluginTag;
 
     //Online Users
-    static HashSet<User> users;
+    public static HashSet<User> users;
 
     public static void addUser(final User user) { users.add(user); }
     public static void removeUser(final User user) { users.remove(user); }
 
     //Groups
-    static ArrayList<Group> groups;
+    public static Map<UUID, Group> groups;
 
-    public static void addGroup(final Group group) { groups.add(group); }
-    public static void removeGroup(final Group group) { groups.remove(group); }
+    public static void addGroup(final Group group) { groups.put(group.getId(), group); }
+    public static void removeGroup(final Group group) { groups.remove(group.getId()); }
 
     //ProtocolManager FOR ProtcolLib
-    static ProtocolManager protocolManager;
+    public static ProtocolManager protocolManager;
 }

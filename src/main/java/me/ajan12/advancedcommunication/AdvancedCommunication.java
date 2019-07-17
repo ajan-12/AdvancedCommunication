@@ -5,8 +5,10 @@ import me.ajan12.advancedcommunication.Commands.MessageCommand.MessageCommand;
 import me.ajan12.advancedcommunication.Listeners.PlayerChatEvent;
 import me.ajan12.advancedcommunication.Listeners.PlayerJoinEvent;
 import me.ajan12.advancedcommunication.Listeners.PlayerQuitEvent;
+import me.ajan12.advancedcommunication.Listeners.ProtocolLibListeners.TabCompleteEvent;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
-
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class AdvancedCommunication extends JavaPlugin {
@@ -18,7 +20,7 @@ public final class AdvancedCommunication extends JavaPlugin {
     public void onEnable() {
 
         //Checking if the server has ProtocolLib
-        /*if (getServer().getPluginManager().getPlugin("ProtocolLib") == null || !getServer().getPluginManager().getPlugin("ProtocolLib").isEnabled()) {
+        if (getServer().getPluginManager().getPlugin("ProtocolLib") == null || !getServer().getPluginManager().getPlugin("ProtocolLib").isEnabled()) {
 
             //Sending a message to console indicating that this plugin needs ProtocolLib.
             Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_RED + "The plugin " + ChatColor.YELLOW + "ProtocolLib" + ChatColor.DARK_RED + " is needed for this plugin!");
@@ -27,7 +29,7 @@ public final class AdvancedCommunication extends JavaPlugin {
 
             //Aborting the plugin initialization.
             return;
-        }*/
+        }
 
         //Setting-up the plugin instance.
         instance = this;
@@ -42,6 +44,9 @@ public final class AdvancedCommunication extends JavaPlugin {
         //Registering the commands.
         getCommand("message").setExecutor(new MessageCommand());
         getCommand("advancedcommunication").setExecutor(new MainCommand());
+
+        //Registering packet listeners.
+        TabCompleteEvent.register();
     }
 
     @Override

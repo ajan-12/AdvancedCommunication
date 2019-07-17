@@ -19,7 +19,7 @@ class HelpCommand {
         // -- "/ac spy" command.
         player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/ac spy" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Toggles the spy status of the executor of the command.");
         player.sendMessage(pluginTag + " --- " + ChatColor.AQUA + " This command requires some permissions.");
-        player.sendMessage(pluginTag + " --- " + ChatColor.AQUA + " Spy status is the ability to view all private messages made within the server.");
+        player.sendMessage(pluginTag + " --- " + ChatColor.AQUA + " Spy status is the ability to view all private messages sent within the server.");
         player.sendMessage(pluginTag + " --- " + ChatColor.YELLOW + "/ac spy <target>" + ChatColor.AQUA + " To toggle spy status of someone else.");
         // -- Command aliases info.
         player.sendMessage(pluginTag + " - " + ChatColor.AQUA + "/advancedcommunication command aliases: " + ChatColor.YELLOW + "ac, advc, acomm, advcomm" + ChatColor.AQUA + ".");

@@ -2,7 +2,7 @@ name: AdvancedCommunication
 version: ${project.version}
 main: me.ajan12.advancedcommunication.AdvancedCommunication
 authors: [ajan_12]
-#depend: [ProtocolLib]
+depend: [ProtocolLib]
 description: Advanced communication methods for your Spigot server!
 
 commands:
@@ -10,6 +10,11 @@ commands:
   advancedcommunication:
     description: Main command of the plugin.
     aliases: [ac, advc, acomm, advcomm]
+
+  group:
+    description: Main command to access group features.
+    aliases: [gr, groups]
+    usage: /group help
 
   message:
     description: Start a messaging session or send a single message to another player!

@@ -1,5 +1,6 @@
 package me.ajan12.advancedcommunication.Listeners;
 
+import me.ajan12.advancedcommunication.Objects.Focusable;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.GeneralUtils;
 
@@ -14,7 +15,8 @@ import java.util.HashSet;
 
 public class PlayerChatEvent implements Listener {
 
-    //Priority is LOWEST because we don't want the other plugins to do their jobs first. ESPECIALLY DISCORDSRV
+    //Priority is LOWEST because we want to be the first plugin to affect the message.
+    //This listener is for Focusing feature.
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat_Focusing(final AsyncPlayerChatEvent e) {
 
@@ -33,9 +35,9 @@ public class PlayerChatEvent implements Listener {
         //Checking if the User is null.
         if (user == null) return;
 
-        //Getting the focused player.
-        final Player target = user.getFocusedPlayer();
-        //Checking the focused player is null, if so we don't need to do anything because player isn't focused on anyone.
+        //Getting the focused.
+        final Focusable target = user.getFocused();
+        //Checking if the focused is null, if so we don't need to do anything because player isn't focused on anyone.
         if (target == null) return;
 
         //Sending the messages.
@@ -46,8 +48,9 @@ public class PlayerChatEvent implements Listener {
     }
 
     //Priority is HIGHEST because we want the other plugins to do their jobs first.
+    //This listener is for Mentioning feature.
     @EventHandler(priority = EventPriority.HIGH)
-    public void onChat_Highlighting(final AsyncPlayerChatEvent e) {
+    public void onChat_Mentioning(final AsyncPlayerChatEvent e) {
 
         //We don't want to send any messages if the event is cancelled.
         if (e.isCancelled()) return;

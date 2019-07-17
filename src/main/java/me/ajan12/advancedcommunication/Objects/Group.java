@@ -1,13 +1,17 @@
 package me.ajan12.advancedcommunication.Objects;
 
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
-
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.UUID;
 
-public class Group {
+public class Group extends Focusable {
+
+    //Unique id of the group.
+    private UUID id;
 
     private String groupName;
     private String description;
@@ -27,6 +31,8 @@ public class Group {
     private long lastUpdate;
 
     public Group(final String creator, final String groupName, final HashMap<Player, Boolean> members) {
+        this.id = UUID.randomUUID();
+
         this.groupName = groupName;
         this.description = "A new group created by " + creator + ".";
         this.members = members;
@@ -35,8 +41,11 @@ public class Group {
         lastUpdate = System.currentTimeMillis();
     }
 
-    public String getGroupName() { return groupName; }
-    public void setGroupName(final String groupName) { this.groupName = groupName; }
+    public UUID getId() { return id; }
+
+    @Override
+    public String getName() { return groupName; }
+    public void setName(final String groupName) { this.groupName = groupName; }
 
     public String getDescription() { return description; }
     public void setDescription(final String description) { this.description = description; }
@@ -57,14 +66,32 @@ public class Group {
 
     ///// SENDING MESSAGES ---------------------------------------------------------------------------------------------
 
-    public void sendMessage(final Player sender, final String message) {
-        //Checking if the sender is a part of this group.
-        if (!members.containsKey(sender)) return;
+    @Override
+    public void sendMessage(final CommandSender sender, final String message) {
+
+        //Creating a senderName variable to initialize and use later on.
+        final String senderName;
+
+        //Checking if the sender is a Player.
+        if (sender instanceof Player) {
+
+            //Checking if the sender is a part of this group.
+            if (!members.containsKey(sender)) return;
+
+            //Initializing senderName.
+            senderName = ((Player) sender).getDisplayName();
+
+        } else {
+
+            //Initializing senderName.
+            senderName = ChatColor.DARK_RED + "CONSOLE";
+
+        }
 
         //Constructing the message to be sent.
         final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + groupName + ChatColor.GOLD + "] " +
-                ChatColor.AQUA + sender.getDisplayName() + ChatColor.DARK_AQUA + " » " +
+                ChatColor.AQUA + senderName + ChatColor.DARK_AQUA + " » " +
                 ChatColor.RESET + message;
 
         //Sending the message to all of the members of this group.
