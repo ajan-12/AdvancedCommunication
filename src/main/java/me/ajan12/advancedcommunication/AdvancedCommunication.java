@@ -7,9 +7,12 @@ import me.ajan12.advancedcommunication.Listeners.PlayerJoinEvent;
 import me.ajan12.advancedcommunication.Listeners.PlayerQuitEvent;
 import me.ajan12.advancedcommunication.Listeners.ProtocolLibListeners.TabCompleteEvent;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
+import me.ajan12.advancedcommunication.Utilities.DatabaseUtils.SQLiteUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
 
 public final class AdvancedCommunication extends JavaPlugin {
 
@@ -35,6 +38,8 @@ public final class AdvancedCommunication extends JavaPlugin {
         instance = this;
         //Setting-up the DataStorage.
         DataStorage.setup();
+        //Setting-up the SQLiteUtils.
+        SQLiteUtils.setup(getDataFolder().getAbsolutePath() + File.separator + "AdvancedCommunication.db");
 
         //Registering all the event listeners.
         getServer().getPluginManager().registerEvents(new PlayerChatEvent(), this);
@@ -47,14 +52,21 @@ public final class AdvancedCommunication extends JavaPlugin {
 
         //Registering packet listeners.
         TabCompleteEvent.register();
+
     }
 
     @Override
     public void onDisable() {
+
+        //Purging SQLiteUtils to remove any leftovers.
+        SQLiteUtils.purgeLocalCache();
+
         //Purging DataStorage to remove any leftovers.
         DataStorage.purge();
+
         //Removing instance to prevent data corruption and memory leak.
         instance = null;
+
     }
 
     //The Getter for the plugin instance.

@@ -41,7 +41,7 @@ public class PlayerChatEvent implements Listener {
         if (target == null) return;
 
         //Sending the messages.
-        GeneralUtils.sendMessageFocused(user, e.getMessage());
+        target.sendMessage(new me.ajan12.advancedcommunication.Objects.Player(sender), e.getMessage());
 
         //Cancelling the event because we don't want to send multiple messages on chat.
         e.setCancelled(true);

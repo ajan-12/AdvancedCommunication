@@ -1,5 +1,6 @@
 package me.ajan12.advancedcommunication.Commands.MessageCommand;
 
+import me.ajan12.advancedcommunication.Objects.Console;
 import me.ajan12.advancedcommunication.Objects.Focusable;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
@@ -135,9 +136,6 @@ public class MessageCommand implements CommandExecutor {
 
             case 2:
 
-                //Creating a focusable variable to initialize and use later on.
-                final Focusable focusable;
-
                 //Checking if the sender is a Player.
                 if (sender instanceof Player) {
 
@@ -153,7 +151,7 @@ public class MessageCommand implements CommandExecutor {
                     }
 
                     //Checking if the user is trying to send a message to a group.
-                    focusable = user.getGroups().containsKey(args[0]) ? DataStorage.groups.get(user.getGroup(args[0])) : new me.ajan12.advancedcommunication.Objects.Player(Bukkit.getPlayer(args[0]));
+                    final Focusable focusable = user.getGroups().containsKey(args[0]) ? DataStorage.groups.get(user.getGroup(args[0])) : new me.ajan12.advancedcommunication.Objects.Player(Bukkit.getPlayer(args[0]));
 
                     //Checking if the focusable is null.
                     if (focusable.getName() == null) {
@@ -163,11 +161,14 @@ public class MessageCommand implements CommandExecutor {
                         return true;
 
                     }
+
+                    //Sending the message.
+                    focusable.sendMessage(new me.ajan12.advancedcommunication.Objects.Player((Player) sender), args[1]);
 
                 } else {
 
                     //Getting the target player as a focusable.
-                    focusable = new me.ajan12.advancedcommunication.Objects.Player(Bukkit.getPlayer(args[0]));
+                    final Focusable focusable = new me.ajan12.advancedcommunication.Objects.Player(Bukkit.getPlayer(args[0]));
 
                     //Checking if the focusable is null.
                     if (focusable.getName() == null) {
@@ -178,10 +179,10 @@ public class MessageCommand implements CommandExecutor {
 
                     }
 
-                }
+                    //Sending the message.
+                    focusable.sendMessage(new Console(), args[1]);
 
-                //Sending the message.
-                focusable.sendMessage(sender, args[1]);
+                }
 
                 //Informing the player.
                 sender.sendMessage(pluginTag + ChatColor.GREEN + " Successfully sent the message.");

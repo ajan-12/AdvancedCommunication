@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 
 public class GroupCommand implements CommandExecutor {
     //TODO: /group <help|list> -> Help page and lists the groups player is in. DONE
-    // ||||| /group list <player> -> Lists the groups player is in. DONE
+    // ||||| /group list <player> -> Enums the groups player is in. DONE
     // ||||| /group <name> -> Focuses on a group.
     // ||||| /group <name> info -> Informs the player about the group(players, description, name, settings).
     // ||||| /group <name> invite|kick <player> -> Invites/kicks a player in the group.

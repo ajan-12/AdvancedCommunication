@@ -2,7 +2,6 @@ package me.ajan12.advancedcommunication.Objects;
 
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -23,11 +22,12 @@ public class Group extends Focusable {
     //true means that the group is in slowdown mode.
     private boolean inSlowdown;
 
-    //keys are the members, values show if they are group admin.
+    //Keys are the members, values show if they are group admin.
     private HashMap<Player, Boolean> members;
 
+    //The timestamp that the group was created in.
     private long createdTime;
-    //last timestamp any action occurred in the group.
+    //Last timestamp any action occurred in the group.
     private long lastUpdate;
 
     public Group(final String creator, final String groupName, final HashMap<Player, Boolean> members) {
@@ -41,7 +41,8 @@ public class Group extends Focusable {
         lastUpdate = System.currentTimeMillis();
     }
 
-    public UUID getId() { return id; }
+    @Override
+    public UUID getUUID() { return id; }
 
     @Override
     public String getName() { return groupName; }
@@ -67,40 +68,25 @@ public class Group extends Focusable {
     ///// SENDING MESSAGES ---------------------------------------------------------------------------------------------
 
     @Override
-    public void sendMessage(final CommandSender sender, final String message) {
-
-        //Creating a senderName variable to initialize and use later on.
-        final String senderName;
-
-        //Checking if the sender is a Player.
-        if (sender instanceof Player) {
-
-            //Checking if the sender is a part of this group.
-            if (!members.containsKey(sender)) return;
-
-            //Initializing senderName.
-            senderName = ((Player) sender).getDisplayName();
-
-        } else {
-
-            //Initializing senderName.
-            senderName = ChatColor.DARK_RED + "CONSOLE";
-
-        }
+    public void sendMessage(final Focusable sender, final String message) {
 
         //Constructing the message to be sent.
         final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + groupName + ChatColor.GOLD + "] " +
-                ChatColor.AQUA + senderName + ChatColor.DARK_AQUA + " » " +
+                ChatColor.AQUA + sender.getName() + ChatColor.DARK_AQUA + " » " +
                 ChatColor.RESET + message;
 
         //Sending the message to all of the members of this group.
         members.keySet().forEach(member -> member.sendMessage(finalMessage));
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();
+
+        //Sending the message to spies.
+        super.sendMessageSpies(sender, this, finalMessage);
+
     }
 
-    public void broadcast(final String message) {
+    private void broadcast(final String message) {
         //Constructing the message to be sent.
         final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + groupName + ChatColor.GOLD + "] " +
@@ -137,14 +123,5 @@ public class Group extends Focusable {
 
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();
-    }
-
-    // SAVING/REMOVING TO/FROM DISC --------------------------------------------------------------------------------------------------
-    public void save() {
-        //TODO: FILL HERE
-    }
-
-    public void purge() {
-        //TODO: FILL HERE
     }
 }

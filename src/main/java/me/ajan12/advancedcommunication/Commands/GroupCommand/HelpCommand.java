@@ -16,9 +16,9 @@ class HelpCommand {
         player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group help" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Shows this page.");
 
         // -- "/gr list" command.
-        player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group list" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Lists down the groups you are currently in.");
+        player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group list" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Enums down the groups you are currently in.");
         // -- "/gr list <player>" command.
-        player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group list <player>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Lists down the groups the player is currently in.");
+        player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group list <player>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Enums down the groups the player is currently in.");
 
         // -- "/gr <group>" command.
         player.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group <group>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Toggles the focus on the group chat.");

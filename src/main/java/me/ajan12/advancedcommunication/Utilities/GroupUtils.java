@@ -1,8 +1,10 @@
 package me.ajan12.advancedcommunication.Utilities;
 
+import me.ajan12.advancedcommunication.Enums.PluginState;
 import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
 
+import me.ajan12.advancedcommunication.Utilities.DatabaseUtils.SQLiteUtils;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -70,6 +72,15 @@ public class GroupUtils {
      */
     public static void purgeGroups() {
 
+        //Checking if the plugin is already purging and saving the groups.
+        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_GROUPS) return;
+
+        //Checking if the plugin is busy with purging and saving the players.
+        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_PLAYERS) return;
+
+        //Changing to PluginState to PURGING_AND_SAVING_GROUPS as we're doing that in this method.
+        DataStorage.changePluginState(PluginState.PURGING_AND_SAVING_GROUPS);
+
         //Creating a TreeMap with the likelinesses and Group's.
         final TreeMap<Float, Group> likelinesses = new TreeMap<>(Comparator.reverseOrder());
 
@@ -134,18 +145,28 @@ public class GroupUtils {
 
         //The integer to use while iteration, this helps us in purging the right amount of groups.
         int i = 0;
+
+        //Creating a hashset to store the groups that will be purged.
+        final HashSet<Group> groupsToPurge = new HashSet<>();
+
         //Iterating over groups to remove the groups with the highest likelinesses.
         for (final Map.Entry<Float, Group> entry : likelinesses.entrySet()) {
 
             //If i exceeds the amount of groups to purge, we break the loop.
             if (i >= groupAmountToPurge) break;
 
-            //Purging the group.
-            entry.getValue().purge();
+            //Adding the group to the hashset.
+            groupsToPurge.add(entry.getValue());
 
             //Increasing the iteration integer.
             i++;
         }
+
+        //Purging the groups.
+        SQLiteUtils.purgeGroups(groupsToPurge);
+
+        //Changing to PluginState to IDLE as we're done with purging and saving.
+        DataStorage.changePluginState(PluginState.IDLE);
     }
 
     /**
@@ -153,30 +174,18 @@ public class GroupUtils {
      */
     public static void saveGroups() {
 
-        //Creating a hashset that contains the groups to be removed after saving to prevent any exceptions.
-        final HashSet<Group> groupsToRemove = new HashSet<>();
-        //Iterating over all of the groups.
-        for (final Group group : DataStorage.groups.values()) {
+        //Checking if the plugin is already purging and saving the groups.
+        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_GROUPS) return;
 
-            //Checking if the group wasn't updated in 2 months.
-            if (System.currentTimeMillis() - group.getLastUpdate() >= 5_184_000_000L) {
-                //Purging the group because it wasn't updated in 2 months.
-                group.purge();
-                //Adding the group to the hashset to remove it later on.
-                groupsToRemove.add(group);
-                //Passing this group.
-                continue;
-            }
+        //Checking if the plugin is busy with purging and saving the players.
+        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_PLAYERS) return;
 
-            //Saving this group to the disc.
-            group.save();
+        //Changing to PluginState to PURGING_AND_SAVING_GROUPS as we're doing that in this method.
+        DataStorage.changePluginState(PluginState.PURGING_AND_SAVING_GROUPS);
 
-        }
+        //TODO: SAVE ALL GROUPS
 
-        //Iterating over the groups that will be removed from memory.
-        for (final Group group : groupsToRemove) {
-            //Removing the group from memory.
-            DataStorage.removeGroup(group);
-        }
+        //Changing to PluginState to IDLE as we're done with purging and saving.
+        DataStorage.changePluginState(PluginState.IDLE);
     }
 }
