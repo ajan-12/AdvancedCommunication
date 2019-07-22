@@ -3,13 +3,32 @@ package me.ajan12.advancedcommunication.Utilities;
 import me.ajan12.advancedcommunication.Enums.PluginState;
 import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
-
 import me.ajan12.advancedcommunication.Utilities.DatabaseUtils.SQLiteUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
 public class GroupUtils {
+
+    /**
+     * Finds the group with the given name from the database.
+     *
+     * @param name: The name of the group.
+     * @return    : The group if it was found, null otherwise.
+     */
+    public static Group findGroup(final String name) {
+        //Iterating over all the groups.
+        for (final Group group : DataStorage.groups.values()) {
+
+            //Checking if we found our group.
+            if (group.getName().equalsIgnoreCase(name)) return group;
+        }
+
+        //Returning null as no groups was found.
+        return null;
+    }
 
     /**
      * Creates a String with all the groups that the player is in.
@@ -21,7 +40,7 @@ public class GroupUtils {
     public static String listGroups(final Player p) {
 
         //Getting the User of this player.
-        final User user = GeneralUtils.getUser(p);
+        final User user = UserUtils.getUser(p);
 
         //Checking if the user is null.
         if (user == null) {
@@ -72,11 +91,8 @@ public class GroupUtils {
      */
     public static void purgeGroups() {
 
-        //Checking if the plugin is already purging and saving the groups.
-        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_GROUPS) return;
-
-        //Checking if the plugin is busy with purging and saving the players.
-        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_PLAYERS) return;
+        //Checking if the plugin is busy.
+        if (DataStorage.pluginState != PluginState.IDLE) return;
 
         //Changing to PluginState to PURGING_AND_SAVING_GROUPS as we're doing that in this method.
         DataStorage.changePluginState(PluginState.PURGING_AND_SAVING_GROUPS);
@@ -85,9 +101,13 @@ public class GroupUtils {
         final TreeMap<Float, Group> likelinesses = new TreeMap<>(Comparator.reverseOrder());
 
         //Getting the amount of groups to purge.
-        final int groupAmountToPurge = DataStorage.groups.size() - 10;
+        final int groupAmountToPurge = DataStorage.groups.size() - 500;
         //Checking if the amount is negative.
-        if (groupAmountToPurge < 0) return;
+        if (groupAmountToPurge < 0) {
+            //Changing to PluginState to IDLE as we're done with purging and saving.
+            DataStorage.changePluginState(PluginState.IDLE);
+            return;
+        }
 
         //Iterating over all of the groups.
         for (final Group group : DataStorage.groups.values()) {
@@ -99,14 +119,14 @@ public class GroupUtils {
             float partition = 0.0F;
 
             //Iterating over all the members this group has.
-            for (final Map.Entry<Player, Boolean> member : group.getMembers().entrySet()) {
+            for (final Map.Entry<UUID, Boolean> member : group.getMembers().entrySet()) {
                 //a temporary value.
                 float temp = 0.0F;
 
                 //Getting the player of this member.
-                final Player player = member.getKey();
+                final OfflinePlayer player = Bukkit.getOfflinePlayer(member.getKey());
 
-                //Getting the time that passed since this player last played.
+                //Getting the time passed since this player last played.
                 long timePassed = System.currentTimeMillis() - player.getLastPlayed();
                 //If the timePassed is bigger than 12 months.
                 if (timePassed >= 31_104_000_000L) {
@@ -174,16 +194,17 @@ public class GroupUtils {
      */
     public static void saveGroups() {
 
-        //Checking if the plugin is already purging and saving the groups.
-        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_GROUPS) return;
-
-        //Checking if the plugin is busy with purging and saving the players.
-        if (DataStorage.pluginState == PluginState.PURGING_AND_SAVING_PLAYERS) return;
+        //Checking if the plugin is busy.
+        if (DataStorage.pluginState != PluginState.IDLE) return;
 
         //Changing to PluginState to PURGING_AND_SAVING_GROUPS as we're doing that in this method.
         DataStorage.changePluginState(PluginState.PURGING_AND_SAVING_GROUPS);
 
-        //TODO: SAVE ALL GROUPS
+        //Getting the groups that we're saving.
+        final HashSet<Group> groups = new HashSet<>(DataStorage.groups.values());
+
+        //Saving the groups.
+        SQLiteUtils.saveGroups(groups);
 
         //Changing to PluginState to IDLE as we're done with purging and saving.
         DataStorage.changePluginState(PluginState.IDLE);

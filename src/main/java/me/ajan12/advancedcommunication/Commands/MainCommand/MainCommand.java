@@ -1,8 +1,6 @@
 package me.ajan12.advancedcommunication.Commands.MainCommand;
 
-import me.ajan12.advancedcommunication.Utilities.DataStorage;
-
-import org.bukkit.ChatColor;
+import me.ajan12.advancedcommunication.Enums.Feedbacks;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,45 +15,64 @@ public class MainCommand implements CommandExecutor {
             //Checking if the 1st argument is "spy".
             if (args[0].equals("spy")) {
 
-                //Setting a String because we want the command to work even without a target as 2nd argument.
+                //Setting this as sender's name because we want the command to work even without a target as 2nd argument.
                 String target = sender.getName();
                 //If there's a target player, we set the target variable to that player.
                 if (args.length == 2) target = args[1];
 
                 //Checking if the sender is a Player, since this command can only be applied in-game.
                 if (sender instanceof Player) {
+
                     //Toggling the spy status and getting if it succeeded.
-                    final SpyCommand.CommandSuccess success = SpyCommand.execute((Player) sender, target);
-
-                    //To shorten some if-else's.
-                    switch (success) {
-                        //if the target wasn't found.
-                        case TARGET_NOT_FOUND:
-                            sender.sendMessage(DataStorage.pluginTag + ChatColor.DARK_RED + " The target player cannot be found.");
-                            break;
-
-                        //If the sender didn't have permission for self-toggling or other-toggling.
-                        case NO_PERMISSION_SELF:
-                        case NO_PERMISSION_OTHER:
-                            sender.sendMessage(DataStorage.pluginTag + ChatColor.DARK_RED + " You do not have permission to do this!");
-                            break;
-                    }
-
-                    //Returning true because we don't want to display the command usage.
-                    return true;
+                    return SpyCommand.execute((Player) sender, target);
                 //If the sender wasn't a Player. This command is special for players.
                 } else {
+
                     //Pasting an error message to the sender.
-                    sender.sendMessage(DataStorage.pluginTag + ChatColor.DARK_RED + " This command can only be applied in-game!");
+                    sender.sendMessage(Feedbacks.CONSOLE_MESSAGE_ERROR.toString());
                     //Returning true because we don't want to display the command usage.
                     return true;
                 }
+            //Checking if the 1st argument is "group".
+            } else if (args[0].equalsIgnoreCase("groups")) {
+                //Checking if the 2nd argument is "save".
+                if (args[1].equalsIgnoreCase("save")) {
 
+                    //Executing the SavePurgeBulkCommand.
+                    return SavePurgeCommand.SavePurgeBulkCommand.execute(sender, true, true);
+                //Checking if the 1st argument is "group".
+                } else if (args[1].equalsIgnoreCase("purge")) {
+
+                    //Executing the SavePurgeBulkCommand.
+                    return SavePurgeCommand.SavePurgeBulkCommand.execute(sender, true, false);
+                }
+            //Checking if the 1st argument is "group".
+            } else if (args[0].equalsIgnoreCase("users")) {
+
+                //Checking if the 2nd argument is "save".
+                if (args[1].equalsIgnoreCase("save")) {
+
+                    //Executing the SavePurgeBulkCommand.
+                    return SavePurgeCommand.SavePurgeBulkCommand.execute(sender, false, true);
+                //Checking if the 1st argument is "group".
+                } else if (args[1].equalsIgnoreCase("purge")) {
+
+                    //Executing the SavePurgeBulkCommand.
+                    return SavePurgeCommand.SavePurgeBulkCommand.execute(sender, false, false);
+                }
+            //Checking if the 1st argument is "save".
+            } else if (args[0].equalsIgnoreCase("save")) {
+
+                //Executing the SavePurgeSingleCommand.
+                return SavePurgeCommand.SavePurgeSingleCommand.execute(sender, args[1], true);
+            //Checking if the 1st argument is "purge".
+            } else if (args[0].equalsIgnoreCase("purge")) {
+
+                //Executing the SavePurgeSingleCommand.
+                return SavePurgeCommand.SavePurgeSingleCommand.execute(sender, args[1], true);
             }
-
         }
-        //If nothing was returned above we want to show the help page or the command usage(nothing).
+        //If nothing was returned above we want to show the help page.
         return HelpCommand.execute(sender);
     }
-
 }

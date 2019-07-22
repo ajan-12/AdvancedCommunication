@@ -1,6 +1,9 @@
 package me.ajan12.advancedcommunication.Objects;
 
+import me.ajan12.advancedcommunication.Enums.Feedbacks;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
+import me.ajan12.advancedcommunication.Utilities.UserUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -23,22 +26,45 @@ public class Group extends Focusable {
     private boolean inSlowdown;
 
     //Keys are the members, values show if they are group admin.
-    private HashMap<Player, Boolean> members;
+    private HashMap<UUID, Boolean> members;
 
     //The timestamp that the group was created in.
     private long createdTime;
     //Last timestamp any action occurred in the group.
     private long lastUpdate;
 
-    public Group(final String creator, final String groupName, final HashMap<Player, Boolean> members) {
+    /**
+     * Used to create a completely new group.
+     */
+    public Group(final String creator, final String name, final HashMap<UUID, Boolean> members) {
         this.id = UUID.randomUUID();
 
-        this.groupName = groupName;
+        this.groupName = name;
         this.description = "A new group created by " + creator + ".";
         this.members = members;
 
         createdTime = System.currentTimeMillis();
         lastUpdate = System.currentTimeMillis();
+    }
+
+    /**
+     * Used to import a group from the database.
+     */
+    public Group(final UUID uuid, final String name, final String description, final boolean sendMessages, final boolean editInfo, final boolean inSlowdown, final HashMap<UUID, Boolean> members, final long createdTime, final long lastUpdate) {
+        this.id = uuid;
+
+        this.groupName = name;
+        this.description = description;
+
+        this.sendMessages = sendMessages;
+        this.editInfo = editInfo;
+        this.inSlowdown = inSlowdown;
+
+        this.members = members;
+
+        this.createdTime = createdTime;
+        this.lastUpdate = lastUpdate;
+
     }
 
     @Override
@@ -60,7 +86,8 @@ public class Group extends Focusable {
     public boolean isInSlowdown() { return inSlowdown; }
     public void setInSlowdown(final boolean inSlowdown) { this.inSlowdown = inSlowdown; }
 
-    public HashMap<Player, Boolean> getMembers() { return members; }
+    public HashMap<UUID, Boolean> getMembers() { return members; }
+    public void addMember(final UUID player, final boolean isAdmin) { members.put(player, isAdmin); }
 
     public long getCreatedTime() { return createdTime; }
     public long getLastUpdate() { return lastUpdate; }
@@ -70,23 +97,27 @@ public class Group extends Focusable {
     @Override
     public void sendMessage(final Focusable sender, final String message) {
 
-        //Constructing the message to be sent.
+        //Preparing the message.
         final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + groupName + ChatColor.GOLD + "] " +
-                ChatColor.AQUA + sender.getName() + ChatColor.DARK_AQUA + " » " +
+                ChatColor.AQUA + sender.getName() + ChatColor.DARK_AQUA + " : " +
                 ChatColor.RESET + message;
 
         //Sending the message to all of the members of this group.
-        members.keySet().forEach(member -> member.sendMessage(finalMessage));
+        members.keySet().forEach(member -> {
+            final Player target = Bukkit.getPlayer(member);
+            if (target != null) target.sendMessage(finalMessage);
+        });
+
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();
 
         //Sending the message to spies.
-        super.sendMessageSpies(sender, this, finalMessage);
+        super.sendMessageSpies(sender, this, message);
 
     }
 
-    private void broadcast(final String message) {
+    public void broadcast(final String message) {
         //Constructing the message to be sent.
         final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + groupName + ChatColor.GOLD + "] " +
@@ -94,32 +125,81 @@ public class Group extends Focusable {
                 ChatColor.RESET + message;
 
         //Sending the message to all of the members of this group.
-        members.keySet().forEach(member -> member.sendMessage(finalMessage));
+        members.keySet().forEach(member -> {
+            final Player target = Bukkit.getPlayer(member);
+            if (target != null) target.sendMessage(finalMessage);
+        });
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();
     }
+
+    @Override
+    public String toString() { return getName(); }
 
     // ADDING/REMOVING PLAYERS -----------------------------------------------------------------------------------------
     public void addMember(final Player player) {
-        members.put(player, false);
+
+        //Adding the player to the members.
+        members.put(player.getUniqueId(), false);
+
+        //Informing the group members.
+        broadcast(ChatColor.YELLOW + player.getName() + ChatColor.AQUA + " has joined the group!");
+
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();
     }
-    public void kickMember(final Player kicker, final Player player) {
+    public void kickMember(final Focusable kicker, final Player player) {
 
-        //Checking if the kicker is a part of this group.
-        if (!members.containsKey(kicker)) return;
-        //Checking if the kicked player is a part of this group.
-        if (!members.containsKey(player)) return;
+        //Getting the User of the player.
+        final User user = UserUtils.getUser(player);
+
+        //Checking if the user was found.
+        if (user == null) {
+
+            //Feedbacking the player.
+            player.sendMessage(Feedbacks.SENDER_USER_NOT_FOUND.toString());
+            return;
+        }
 
         //Removing the player from the database.
-        members.remove(player);
+        members.remove(player.getUniqueId());
 
         //Informing the player that they have been kicked.
         player.sendMessage(DataStorage.pluginTag + ChatColor.RED + " You have been kicked from group " + ChatColor.YELLOW + groupName + ChatColor.RED +  ".");
 
         //Broadcasting the group that a player has been kicked.
-        broadcast(kicker.getName() + " has kicked the player " + player.getName() + " from this group.");
+        broadcast(ChatColor.YELLOW + kicker.getName() + ChatColor.AQUA + " has kicked the player " + ChatColor.YELLOW + player.getName() + ChatColor.AQUA + " from the group.");
+
+        //Removing the group from the player.
+        user.removeGroup(groupName);
+
+        //Updating the lastUpdate
+        lastUpdate = System.currentTimeMillis();
+    }
+    public void memberLeave(final Player player) {
+
+        //Getting the User of the player.
+        final User user = UserUtils.getUser(player);
+
+        //Checking if the user was found.
+        if (user == null) {
+
+            //Feedbacking the player.
+            player.sendMessage(Feedbacks.SENDER_USER_NOT_FOUND.toString());
+            return;
+        }
+
+        //Removing the group from the player.
+        user.removeGroup(groupName);
+
+        //Removing the player from the database.
+        members.remove(player.getUniqueId());
+
+        //Broadcasting the group that a player has left.
+        broadcast(ChatColor.YELLOW + player.getName() + ChatColor.AQUA + " has left the group.");
+
+        //Feedbacking the player.
+        player.sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " You have successfully left the group " + ChatColor.YELLOW + groupName + ChatColor.GREEN + ".");
 
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();

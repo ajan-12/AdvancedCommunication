@@ -1,15 +1,20 @@
 package me.ajan12.advancedcommunication.Commands.GroupCommand;
 
+import me.ajan12.advancedcommunication.Enums.Feedbacks;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
 import me.ajan12.advancedcommunication.Utilities.GroupUtils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class ListCommand {
+class ListCommand {
 
-    static boolean execute(final CommandSender player, final String... args) {
+    static boolean execute(final CommandSender player, final String[] args) {
+
+        //Getting the pluginTag to ease my work.
+        final String pluginTag = DataStorage.pluginTag;
 
         //Checking if the args length is 1.
         if (args.length == 1) {
@@ -21,17 +26,15 @@ public class ListCommand {
                 final String list = GroupUtils.listGroups((Player) player);
 
                 //Sending the message containing the groups the player is in.
-                player.sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " The groups you are in: " + ChatColor.YELLOW + list);
+                player.sendMessage(pluginTag + ChatColor.GREEN + " The groups you are in: " + ChatColor.YELLOW + list);
 
                 //Returning true because we don't want to show the command usage.
                 return true;
-
             } else {
 
-                player.sendMessage(ChatColor.DARK_RED + "This command can only be applied in-game!");
-                //Returning true because we don't want to show the command usage.
+                //Informing the console.
+                player.sendMessage(Feedbacks.CONSOLE_MESSAGE_ERROR.toString());
                 return true;
-
             }
 
         //Checking if the args length is 2.
@@ -44,28 +47,21 @@ public class ListCommand {
             if (target == null || !target.isOnline()) {
 
                 //Informing the sender that the target cannot be found.
-                player.sendMessage(ChatColor.DARK_RED + "Cannot find the specified player. Please try again.");
-
-                //Returning true because we don't want to show the command usage.
+                player.sendMessage(Feedbacks.PLAYER_NOT_FOUND.toString());
                 return true;
-
             } else {
 
                 //Getting the list of groups the target is in.
                 final String list = GroupUtils.listGroups(target);
 
                 //Sending the message containing the groups the target is in.
-                player.sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " The groups you are in: " + ChatColor.YELLOW + list);
-
-                //Returning true because we don't want to show the command usage.
+                player.sendMessage(pluginTag + ChatColor.GREEN + " The groups you are in: " + ChatColor.YELLOW + list);
                 return true;
             }
         }
 
         //Informing the sender that this command can only be applied in-game.
-        player.sendMessage(ChatColor.DARK_RED + "This command can only be applied in-game!");
-
-        //Returning true because we don't want to show the command usage.
+        player.sendMessage(Feedbacks.CONSOLE_MESSAGE_ERROR.toString());
         return true;
     }
 }

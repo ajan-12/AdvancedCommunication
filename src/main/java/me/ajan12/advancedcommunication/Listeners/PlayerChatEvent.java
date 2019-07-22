@@ -1,17 +1,22 @@
 package me.ajan12.advancedcommunication.Listeners;
 
 import me.ajan12.advancedcommunication.Objects.Focusable;
+import me.ajan12.advancedcommunication.Objects.MentionedMessage;
 import me.ajan12.advancedcommunication.Objects.User;
-import me.ajan12.advancedcommunication.Utilities.GeneralUtils;
-
+import me.ajan12.advancedcommunication.Utilities.DataStorage;
+import me.ajan12.advancedcommunication.Utilities.UserUtils;
+import me.ajan12.advancedcommunication.Utilities.PacketUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
-import java.util.HashSet;
+import java.util.HashMap;
 
 public class PlayerChatEvent implements Listener {
 
@@ -27,11 +32,8 @@ public class PlayerChatEvent implements Listener {
 
         //Getting the sender player.
         final Player sender = e.getPlayer();
-        //Checking if the sender player is null.
-        if (sender == null) return;
-
         //Getting the User the message sender corresponds to.
-        final User user = GeneralUtils.getUser(sender);
+        final User user = UserUtils.getUser(sender);
         //Checking if the User is null.
         if (user == null) return;
 
@@ -41,13 +43,13 @@ public class PlayerChatEvent implements Listener {
         if (target == null) return;
 
         //Sending the messages.
-        target.sendMessage(new me.ajan12.advancedcommunication.Objects.Player(sender), e.getMessage());
+        target.sendMessage(user, e.getMessage());
 
         //Cancelling the event because we don't want to send multiple messages on chat.
         e.setCancelled(true);
     }
 
-    //Priority is HIGHEST because we want the other plugins to do their jobs first.
+    //Priority is HIGH because we want the other plugins to do their jobs first.
     //This listener is for Mentioning feature.
     @EventHandler(priority = EventPriority.HIGH)
     public void onChat_Mentioning(final AsyncPlayerChatEvent e) {
@@ -55,42 +57,57 @@ public class PlayerChatEvent implements Listener {
         //We don't want to send any messages if the event is cancelled.
         if (e.isCancelled()) return;
 
-        //Creating a new hashset for the new recipients of the message.
-        //These players will get the normal message without highlighting.
-        final HashSet<Player> newRecipients = new HashSet<>();
-        //The message that was sent by the sender.
+        //Getting the message that was sent.
         final String message = e.getMessage();
+        //Getting the words in the message.
+        final String[] words = message.split(" ");
 
-        //Iterating over all of the online players to scan for their nick in the message.
-        for (final Player p : Bukkit.getOnlinePlayers()) {
+        //Preparing the String that we'll be modifying.
+        String highlightedMessage = message;
 
-            //Checking if the message contains the player's nick.
-            if (message.contains("@" + p.getName())) {
+        //Creating the hashmap that will contain the players mentioned and the amounts.
+        final HashMap<Player, Integer> playerMentions = new HashMap<>();
 
-                //Sending the player the highlighted message.
-                GeneralUtils.highlightAndSend(p, e.getPlayer(), message, "@" + p.getName());
+        int total = 0;
+        //Iterating over the players.
+        for (final Player player : Bukkit.getOnlinePlayers()) {
 
-            //Checking if the message contains the player's display name.
-            } else if (message.contains("@" + p.getDisplayName())) {
+            //The amount of mentions of this player.
+            int amount = 0;
+            //Iterating over the words.
+            for (final String word : words) {
 
-                //Sending the player the highlighted message.
-                GeneralUtils.highlightAndSend(p, e.getPlayer(), message, "@" + p.getDisplayName());
+                //Checking if the player was mentioned in this word.
+                if (word.toLowerCase().contains("@" + player.getName().toLowerCase()) || word.toLowerCase().contains("@" + player.getDisplayName().toLowerCase())) {
+                    //Checking if the mention has anything else.
+                    if (word.replaceAll("(@" + player.getName() + "|" + player.getDisplayName() + ")", "").matches("\\W*")) amount++;
+                }
+            }
 
-            } else {
+            if (amount > 0) {
 
-                //Adding this player to new recipients since they aren't contained in the message.
-                newRecipients.add(p);
+                //Highlighting the mention.
+                highlightedMessage = highlightedMessage.replaceAll("(@(" + player.getName() + "|" + ChatColor.stripColor(player.getDisplayName()) + "))", "§e@" + player.getDisplayName().replaceAll("(§r|§f)","§e") + "§r");
 
+                //Updating the message.
+                e.setMessage(highlightedMessage);
+
+                //Notifications.
+                //Notifying the mentioned player by a subtitle.
+                player.sendTitle(" ", e.getPlayer().getDisplayName() + ChatColor.GOLD + " has mentioned you.", 10, 60, 20);
+                //Sending a hotbar message.
+                PacketUtils.sendHotbarMessage(player, highlightedMessage);
+                //Playing a sound effect to notify the player.
+                player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, SoundCategory.PLAYERS, 100F, 0F);
+
+                //Adding the mention to playerMentions.
+                playerMentions.put(player, amount);
+
+                total++;
             }
         }
 
-        //Iterating over the new recipients.
-        for (final Player p : newRecipients) {
-            //Sending the normal message to the new recipients.
-            p.sendMessage(message);
-        }
-
-        //Cancelling the event because we don't want to send multiple messages.
-        e.setCancelled(true);
+        //Creating and adding a new MentionedMessage.
+        DataStorage.messages.add(new MentionedMessage(playerMentions, total));
     }
 }

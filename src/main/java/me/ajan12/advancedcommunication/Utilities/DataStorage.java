@@ -2,10 +2,14 @@ package me.ajan12.advancedcommunication.Utilities;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import me.ajan12.advancedcommunication.AdvancedCommunication;
 import me.ajan12.advancedcommunication.Enums.PluginState;
 import me.ajan12.advancedcommunication.Objects.Group;
+import me.ajan12.advancedcommunication.Objects.MentionedMessage;
 import me.ajan12.advancedcommunication.Objects.User;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,9 +30,18 @@ public class DataStorage {
 
         protocolManager = ProtocolLibrary.getProtocolManager();
 
+        RegisteredServiceProvider<Permission> rsp = AdvancedCommunication.getInstance().getServer().getServicesManager().getRegistration(Permission.class);
+        perms = rsp.getProvider();
+
+        messages = new HashSet<>();
     }
 
     public static void purge() {
+
+        messages.clear();
+        messages = null;
+
+        perms = null;
 
         protocolManager = null;
 
@@ -65,4 +78,13 @@ public class DataStorage {
 
     //ProtocolManager FOR ProtcolLib
     public static ProtocolManager protocolManager;
+
+    //Permission FOR Vault
+    public static Permission perms;
+
+    //Mentioned messages
+    public static HashSet<MentionedMessage> messages;
+
+    public static void addMention(final MentionedMessage message) { messages.add(message); }
+    public static void removeMention(final MentionedMessage message) { messages.remove(message); }
 }

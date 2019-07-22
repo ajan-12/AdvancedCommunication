@@ -2,7 +2,7 @@ name: AdvancedCommunication
 version: ${project.version}
 main: me.ajan12.advancedcommunication.AdvancedCommunication
 authors: [ajan_12]
-depend: [ProtocolLib]
+depend: [ProtocolLib,Vault]
 description: Advanced communication methods for your Spigot server!
 
 commands:
@@ -26,6 +26,38 @@ permissions:
   #### Help page
   advancedcommunication.command.help:
     description: The permission node that defines if a player is able to view the help page.
+    default: op
+
+  #### Group creating command
+  advancedcommunication.command.group.create:
+    description: The permission node that defines if a player is able to create a group.
+    default: true
+
+  #### Saving/Purging commands
+  advancedcommunication.command.save.groups:
+    description: The permission node that defines if a player is able to save the all of groups.
+    default: op
+  advancedcommunication.command.purge.groups:
+    description: The permission node that defines if a player is able to purge the all of groups.
+    default: op
+  advancedcommunication.command.save.users:
+    description: The permission node that defines if a player is able to save the all of users.
+    default: op
+  advancedcommunication.command.purge.users:
+    description: The permission node that defines if a player is able to purge the all of users.
+    default: op
+
+  advancedcommunication.command.save.group:
+    description: The permission node that defines if a player is able to save a group.
+    default: op
+  advancedcommunication.command.purge.group:
+    description: The permission node that defines if a player is able to purge a group.
+    default: op
+  advancedcommunication.command.save.user:
+    description: The permission node that defines if a player is able to save an user.
+    default: op
+  advancedcommunication.command.purge.user:
+    description: The permission node that defines if a player is able to purge an user.
     default: op
 
   #### Spy toggling command
@@ -52,4 +84,9 @@ permissions:
   #### Spy
   advancedcommunication.spy:
     description: The permission node that defines if a player is spying.
+    default: op
+
+  #### User purging bypass
+  advancedcommunication.user.purge.bypass:
+    description: The permission node that makes the player unable to be purged.
     default: op

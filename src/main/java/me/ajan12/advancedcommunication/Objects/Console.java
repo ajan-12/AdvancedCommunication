@@ -12,11 +12,21 @@ public class Console extends Focusable {
 
     @Override
     public void sendMessage(Focusable sender, String message) {
-        //Sending the message to both target player and sender player.
-        Bukkit.getConsoleSender().sendMessage(
+
+        //Preparing the message.
+        final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + sender.getName() +
-                ChatColor.GOLD + "] >> [" + getName() + ChatColor.GOLD + "] » " +
-                ChatColor.RESET + message);
+                ChatColor.GOLD + "] >> [" + getName() + ChatColor.GOLD + "] : " +
+                ChatColor.RESET + message;
+
+        //Sending the message to Console.
+        Bukkit.getConsoleSender().sendMessage(finalMessage);
+
+        //Sending the message to the sender.
+        super.sendMessageSender(sender, this, message);
+
+        //Sending the message to spies.
+        super.sendMessageSpies(sender, this, message);
     }
 
     @Override
