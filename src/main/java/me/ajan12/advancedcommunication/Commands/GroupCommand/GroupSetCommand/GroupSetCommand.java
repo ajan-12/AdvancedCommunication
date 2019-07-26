@@ -5,6 +5,7 @@ import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.GroupUtils;
 import me.ajan12.advancedcommunication.Utilities.UserUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,11 +32,14 @@ public class GroupSetCommand {
         //Checking if the sender is a Player.
         if (sender instanceof Player) {
             //Checking if the player is a group admin.
-            if (!group.getMembers().get(((Player) sender).getUniqueId()) && !group.isEditInfo()) {
+            if (!group.getMembers().get(((Player) sender).getUniqueId())) {
 
-                //Feedbacking the player.
-                sender.sendMessage(Feedbacks.NOT_ADMIN.toString());
-                return true;
+                //Checking if members can edit group info.
+                if (!group.isEditInfo()) {
+                    //Feedbacking the player.
+                    sender.sendMessage(Feedbacks.NOT_ADMIN.toString());
+                    return true;
+                }
             }
         }
 
@@ -131,10 +135,10 @@ public class GroupSetCommand {
             if (args[3].equalsIgnoreCase("on")) {
 
                 newSendMessages = true;
-            //Checking if 4th argument equals to "off".
+                //Checking if 4th argument equals to "off".
             } else if (args[3].equalsIgnoreCase("off")) {
 
-            newSendMessages = false;
+                newSendMessages = false;
             } else return HelpCommand.execute(sender);
 
             //Toggling the slowdown.
@@ -145,6 +149,41 @@ public class GroupSetCommand {
 
             //Broadcasting the setting change to whole group.
             group.broadcast(ChatColor.YELLOW + sender.getName() + ChatColor.AQUA + " has toggled the ability of members' messages sending " + on_offColor + args[3] + ChatColor.AQUA + ".");
+            return true;
+        //Checking if the 3rd argument is "admin".
+        } else if (args[2].equalsIgnoreCase("admin")) {
+
+            //Checking if the sender is a Player.
+            if (sender instanceof Player) {
+                //Checking if the player is a group admin.
+                if (!group.getMembers().get(((Player) sender).getUniqueId())) {
+
+                    //Feedbacking the player.
+                    sender.sendMessage(Feedbacks.NOT_ADMIN.toString());
+                    return true;
+                }
+            }
+
+            //Getting the targeting player.
+            final Player player = Bukkit.getPlayer(args[3]);
+            //Checking if player exists.
+            if (player == null) {
+
+                //Feedbacking the player.
+                sender.sendMessage(Feedbacks.PLAYER_NOT_FOUND.toString());
+                return true;
+            }
+
+            //Getting if the target player is already an admin.
+            final boolean isAdmin = group.getMembers().get(player.getUniqueId());
+            //Toggling the admin state of the target player.
+            group.getMembers().replace(player.getUniqueId(), !isAdmin);
+
+            //We'll use this in the broadcast.
+            final String promotedDemoted = isAdmin ? "demoted" : "promoted";
+
+            //Broadcasting the setting change to whole group.
+            group.broadcast(ChatColor.YELLOW + sender.getName() + ChatColor.AQUA + " has " + promotedDemoted + ChatColor.YELLOW + args[3] + ChatColor.AQUA + ".");
             return true;
         } else return HelpCommand.execute(sender);
     }

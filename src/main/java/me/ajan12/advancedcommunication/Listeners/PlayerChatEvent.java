@@ -55,6 +55,9 @@ public class PlayerChatEvent implements Listener {
         //We don't want to send any messages if the event is cancelled.
         if (e.isCancelled()) return;
 
+        //Checking if the player has already sent a mention recently.
+        if (DataStorage.mentionedPlayers.get(e.getPlayer().getUniqueId()) > System.currentTimeMillis() - 10_000) return;
+
         //Getting the message that was sent.
         final String message = e.getMessage();
         //Getting the words in the message.
@@ -106,7 +109,9 @@ public class PlayerChatEvent implements Listener {
         }
 
         //Creating and adding a new MentionedMessage.
-        DataStorage.messages.add(new MentionedMessage(playerMentions, total));
+        DataStorage.addMention(new MentionedMessage(playerMentions, total));
+        //Adding the player to cooldowned ones.
+        DataStorage.addMentionedPlayer(e.getPlayer().getUniqueId());
     }
 
     //Priority is HIGH because we want the other plugins to do their jobs first.

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Group extends Focusable {
 
@@ -202,6 +203,38 @@ public class Group extends Focusable {
 
         //Getting the User of the player.
         final User user = UserUtils.getUser(player);
+
+        //Iterating over the group UUIDs.
+        for (final UUID groupUUID : user.getGroups().values()) {
+
+            //Getting the group.
+            final Group group = DataStorage.groups.get(groupUUID);
+            //Getting the members of the group.
+            final HashMap<UUID, Boolean> members = group.getMembers();
+
+            //Checking if this user is a group admin in this group.
+            if (!members.get(user.getUUID())) continue;
+
+            //The admin amount of the group.
+            int adminAmount = 0;
+            for (final boolean value : group.getMembers().values()) {
+                if (value) adminAmount++;
+            }
+
+            //Removing the user from the members.
+            members.remove(user.getUUID());
+
+            //Checking if the admin amount is lower than 2.
+            if (adminAmount < 2) {
+                //Getting a random index in group members.
+                final int newAdminIndex = ThreadLocalRandom.current().nextInt(0, group.getMembers().size());
+                //Getting an user randomly.
+                final UUID randomUser = members.keySet().toArray(new UUID[0])[newAdminIndex];
+
+                //Setting the user group admin.
+                group.getMembers().remove(randomUser, true);
+            }
+        }
 
         //Removing the group from the player.
         user.removeGroup(groupName);

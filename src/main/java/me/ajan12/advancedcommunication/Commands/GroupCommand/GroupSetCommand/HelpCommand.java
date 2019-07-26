@@ -27,6 +27,10 @@ class HelpCommand {
         sender.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group <group> set slowdown <on|off>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Changes the ability of group message slowdown.");
         // -- "/group <group> set send-messages <on|off>" command.
         sender.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group <group> set send-messages <on|off>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Changes the ability of members' message sending.");
+
+        // -- "/group <group> set admin <player>" command.
+        sender.sendMessage(pluginTag + " - " + ChatColor.YELLOW + "/group <group> set admin <player>" + ChatColor.GREEN + " : " + ChatColor.AQUA + " Promotes/demotes a player to/from group administrate.");
+        sender.sendMessage(pluginTag + " --- " + ChatColor.DARK_RED + "Group Admin command.");
         return true;
     }
 }

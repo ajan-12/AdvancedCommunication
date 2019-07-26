@@ -34,9 +34,14 @@ public class DataStorage {
         perms = rsp.getProvider();
 
         messages = new HashSet<>();
+
+        mentionedPlayers = new HashMap<>();
     }
 
     public static void purge() {
+
+        mentionedPlayers.clear();
+        mentionedPlayers = null;
 
         messages.clear();
         messages = null;
@@ -53,7 +58,6 @@ public class DataStorage {
 
         pluginState = null;
         pluginTag = null;
-
     }
 
     //Plugin Tag
@@ -82,9 +86,15 @@ public class DataStorage {
     //Permission FOR Vault
     public static Permission perms;
 
-    //Mentioned messages
+    //Mentioned messages FOR mention highlighting
     public static HashSet<MentionedMessage> messages;
 
     public static void addMention(final MentionedMessage message) { messages.add(message); }
     public static void removeMention(final MentionedMessage message) { messages.remove(message); }
+
+    //Mentioned players FOR mention cooldowns
+    public static HashMap<UUID, Long> mentionedPlayers;
+
+    public static void addMentionedPlayer(final UUID player) { mentionedPlayers.put(player, System.currentTimeMillis()); }
+    public static void removeMentionedPlayer(final UUID player) { mentionedPlayers.remove(player); }
 }
