@@ -1,12 +1,13 @@
 package me.ajan12.advancedcommunication.Commands.GroupCommand;
 
+import me.ajan12.advancedcommunication.Commands.GroupCommand.GroupSetCommand.GroupSetCommand;
 import me.ajan12.advancedcommunication.Enums.Feedbacks;
 import me.ajan12.advancedcommunication.Objects.Console;
 import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
-import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import me.ajan12.advancedcommunication.Utilities.GroupUtils;
+import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public class GroupCommand implements CommandExecutor {
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
         //Getting the pluginTag to ease my work.
         final String pluginTag = DataStorage.pluginTag;
@@ -30,7 +31,7 @@ public class GroupCommand implements CommandExecutor {
                 //Checking if 1st argument equals to "help".
                 case "help":
                     //Sending the help page to the player.
-                    return HelpCommand.execute(sender);
+                    return HelpCommand.execute(sender, 1);
 
                 //Checking if the 1st argument equals to "list".
                 case "list":
@@ -51,14 +52,6 @@ public class GroupCommand implements CommandExecutor {
 
                         //Getting the User of the sender.
                         final User senderUser = UserUtils.getUser((Player) sender);
-
-                        //Checking if the user was found.
-                        if (senderUser == null) {
-
-                            //Feedbacking the player.
-                            sender.sendMessage(Feedbacks.SENDER_USER_NOT_FOUND.toString());
-                            return true;
-                        }
 
                         //Checking if the User is in the specified group.
                         if (!senderUser.getGroups().containsKey(args[0])) {
@@ -111,14 +104,6 @@ public class GroupCommand implements CommandExecutor {
             //Getting the User of the sender.
             final User senderUser = UserUtils.getUser((Player) sender);
 
-            //Checking if the user was found.
-            if (senderUser == null) {
-
-                //Feedbacking the player.
-                sender.sendMessage(Feedbacks.SENDER_USER_NOT_FOUND.toString());
-                return true;
-            }
-
             //Shorter version of if-else's.
             switch (args.length) {
 
@@ -150,6 +135,17 @@ public class GroupCommand implements CommandExecutor {
 
                         //Executing the ListCommand.
                         return ListCommand.execute(sender, args);
+                    //Checking if the 1st argument equals to "help".
+                    } else if (args[0].equalsIgnoreCase("help")) {
+
+                        //Checking if the 2nd argument is a number.
+                        if (args[1].matches("[0-9]+")) {
+                            //Executing the HelpCommand.
+                            return HelpCommand.execute(sender, Integer.parseInt(args[1]));
+                        } else {
+                            //Executing the HelpCommand.
+                            return HelpCommand.execute(sender, 1);
+                        }
                     //Checking if the 1st argument equals to "create".
                     } else if (args[0].equalsIgnoreCase("create")) {
 
@@ -165,6 +161,16 @@ public class GroupCommand implements CommandExecutor {
 
                         //Executing the GroupDisbandCommand.
                         return GroupDisbandCommand.execute(sender, args);
+                    //Checking if the 2nd argument equals to "set".
+                    } else if (args[1].equalsIgnoreCase("set")) {
+
+                        //Executing the GroupSetCommand.
+                        return GroupSetCommand.execute(sender, args);
+                    //Checking if the 2nd argument equals to "info".
+                    } else if (args[1].equalsIgnoreCase("info")) {
+
+                        //Executing the GroupInfoCommand.
+                        return GroupInfoCommand.execute(sender, args[0]);
                     }
 
                 case 3:
@@ -173,10 +179,22 @@ public class GroupCommand implements CommandExecutor {
 
                         //Executing the group invite/kick command.
                         return GroupInviteKickCommand.execute(sender, args);
+                    //Checking if the 2nd argument equals to "set".
+                    } else if (args[1].equalsIgnoreCase("set")) {
+
+                        //Executing the GroupSetCommand.
+                        return GroupSetCommand.execute(sender, args);
                     }
 
                 //Sending a message to a group.
                 default:
+                    //Checking if the 2nd argument equals to "set".
+                    if (args[1].equalsIgnoreCase("set")) {
+
+                        //Executing the GroupSetCommand.
+                        return GroupSetCommand.execute(sender, args);
+                    }
+
                     //Checking if the senderUser is in the group they specified.
                     if (senderUser.getGroups().containsKey(args[0])) {
 
@@ -219,6 +237,11 @@ public class GroupCommand implements CommandExecutor {
 
                         //Executing the GroupCreateCommand.
                         return GroupCreateCommand.execute(sender, args);
+                    //Checking if the 2nd argument equals to "set".
+                    } else if (args[1].equalsIgnoreCase("set")) {
+
+                        //Executing the GroupSetCommand.
+                        return GroupSetCommand.execute(sender, args);
                     }
 
                 case 3:
@@ -227,10 +250,22 @@ public class GroupCommand implements CommandExecutor {
 
                         //Executing the group invite/kick command.
                         return GroupInviteKickCommand.execute(sender, args);
+                    //Checking if the 2nd argument equals to "set".
+                    } else if (args[1].equalsIgnoreCase("set")) {
+
+                        //Executing the GroupSetCommand.
+                        return GroupSetCommand.execute(sender, args);
                     }
 
                 //Sending a message to a group.
                 default:
+
+                    //Checking if the 2nd argument equals to "set".
+                    if (args[1].equalsIgnoreCase("set")) {
+
+                        //Executing the GroupSetCommand.
+                        return GroupSetCommand.execute(sender, args);
+                    }
 
                     //Getting the group console specified.
                     final Group group = GroupUtils.findGroup(args[0]);

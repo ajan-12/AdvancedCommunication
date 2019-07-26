@@ -5,6 +5,7 @@ import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.DatabaseUtils.SQLiteUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -70,13 +71,13 @@ public class GroupUtils {
                 default:
 
                     //Creating the StringBuilder that we'll populate and return.
-                    final StringBuilder message = new StringBuilder(groups.get(1) + " and " + groups.get(0));
+                    final StringBuilder message = new StringBuilder(ChatColor.YELLOW + groups.get(1) + ChatColor.AQUA + " and " + ChatColor.YELLOW + groups.get(0) + ChatColor.AQUA + ".");
 
                     //Populating the StringBuilder if the user is in more than 2 groups.
                     for (int i = 2; i < groups.size(); i++) {
 
                         //Inserting the group we're iterating over to the beginning.
-                        message.insert(0, groups.get(i) + ", ");
+                        message.insert(0, ChatColor.YELLOW + groups.get(i) + ChatColor.AQUA + ", ");
 
                     }
 
@@ -87,6 +88,24 @@ public class GroupUtils {
     }
 
     /**
+     * Imports the groups from the Database to DataStorage.
+     */
+    public static void importGroups() {
+
+        //Checking if the plugin is busy.
+        if (DataStorage.pluginState != PluginState.IDLE) return;
+
+        //Changing to PluginState to IMPORTING_GROUPS as we're doing that in this method.
+        DataStorage.changePluginState(PluginState.IMPORTING_GROUPS);
+
+        //Importing the groups.
+        SQLiteUtils.importGroups();
+
+        //Changing to PluginState to IDLE as we're done with importing.
+        DataStorage.changePluginState(PluginState.IDLE);
+    }
+
+    /**
      * Purges the groups according to the inactivity of its members, group admins and overall group inactivity.
      */
     public static void purgeGroups() {
@@ -94,8 +113,8 @@ public class GroupUtils {
         //Checking if the plugin is busy.
         if (DataStorage.pluginState != PluginState.IDLE) return;
 
-        //Changing to PluginState to PURGING_AND_SAVING_GROUPS as we're doing that in this method.
-        DataStorage.changePluginState(PluginState.PURGING_AND_SAVING_GROUPS);
+        //Changing to PluginState to PURGING_GROUPS as we're doing that in this method.
+        DataStorage.changePluginState(PluginState.PURGING_GROUPS);
 
         //Creating a TreeMap with the likelinesses and Group's.
         final TreeMap<Float, Group> likelinesses = new TreeMap<>(Comparator.reverseOrder());
@@ -185,7 +204,7 @@ public class GroupUtils {
         //Purging the groups.
         SQLiteUtils.purgeGroups(groupsToPurge);
 
-        //Changing to PluginState to IDLE as we're done with purging and saving.
+        //Changing to PluginState to IDLE as we're done with purging.
         DataStorage.changePluginState(PluginState.IDLE);
     }
 
@@ -197,8 +216,8 @@ public class GroupUtils {
         //Checking if the plugin is busy.
         if (DataStorage.pluginState != PluginState.IDLE) return;
 
-        //Changing to PluginState to PURGING_AND_SAVING_GROUPS as we're doing that in this method.
-        DataStorage.changePluginState(PluginState.PURGING_AND_SAVING_GROUPS);
+        //Changing to PluginState to SAVING_GROUPS as we're doing that in this method.
+        DataStorage.changePluginState(PluginState.SAVING_GROUPS);
 
         //Getting the groups that we're saving.
         final HashSet<Group> groups = new HashSet<>(DataStorage.groups.values());
@@ -206,7 +225,7 @@ public class GroupUtils {
         //Saving the groups.
         SQLiteUtils.saveGroups(groups);
 
-        //Changing to PluginState to IDLE as we're done with purging and saving.
+        //Changing to PluginState to IDLE as we're done with saving.
         DataStorage.changePluginState(PluginState.IDLE);
     }
 }

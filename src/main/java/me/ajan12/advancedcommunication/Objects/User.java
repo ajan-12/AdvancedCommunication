@@ -1,48 +1,49 @@
 package me.ajan12.advancedcommunication.Objects;
 
 import com.sun.istack.internal.Nullable;
-
 import me.ajan12.advancedcommunication.AdvancedCommunication;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
-
 import me.ajan12.advancedcommunication.Utilities.PacketUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-public class User extends Focusable{
+public class User extends Focusable implements Mutable{
 
     private UUID uuid;
-    private String name;
 
     private Focusable focused;
+    private Focusable messagedBy;
 
     private boolean isInvited;
     @Nullable private String inviter;
     @Nullable private UUID invitedGroup;
 
-    //Group name, Group id.
-    private Map<String, UUID> groups;
+    private ArrayList<UUID> ignoredUsers;
+    private HashMap<String, UUID> groups;
 
-    public User(@Nullable final String name, final UUID uuid) {
-        this.name = name;
+    private byte muteState;
+    private long muteEnd;
+
+    private String muteReason;
+
+    public User(final UUID uuid) {
         this.uuid = uuid;
 
         focused = null;
+        messagedBy = null;
 
         isInvited = false;
         inviter = null;
         invitedGroup = null;
 
+        ignoredUsers = new ArrayList<>();
         groups = new HashMap<>();
     }
 
-    public User(@Nullable final String name, final UUID uuid, final HashMap<String, UUID> groups) {
-        this.name = name;
+    public User(final UUID uuid, final ArrayList<UUID> ignoredUsers, final HashMap<String, UUID> groups, final byte muteState, final long muteEnd, final String muteReason) {
         this.uuid = uuid;
 
         focused = null;
@@ -51,7 +52,12 @@ public class User extends Focusable{
         inviter = null;
         invitedGroup = null;
 
+        this.ignoredUsers = ignoredUsers;
         this.groups = groups;
+
+        this.muteState = muteState;
+        this.muteEnd = muteEnd;
+        this.muteReason = muteReason;
     }
 
     public Player getPlayer() { return Bukkit.getPlayer(uuid); }
@@ -59,6 +65,10 @@ public class User extends Focusable{
     public Focusable getFocused() { return focused; }
     public boolean isFocused() { return focused != null; }
     public void setFocused(@Nullable final Focusable focused) { this.focused = focused; }
+
+    public Focusable getMessagedBy() { return messagedBy; }
+    public boolean isMessagedBy() { return messagedBy != null; }
+    public void setMessagedBy(@Nullable final Focusable messagedBy) { this.messagedBy = messagedBy; }
 
     public boolean isInvited() { return isInvited; }
     public void setInvited(boolean invited) { isInvited = invited; }
@@ -68,6 +78,10 @@ public class User extends Focusable{
 
     public UUID getInvitedGroup() { return invitedGroup; }
     public void setInvitedGroup(@Nullable final UUID invitedGroup) { this.invitedGroup = invitedGroup; }
+
+    public ArrayList<UUID> getIgnoredUsers() { return ignoredUsers; }
+    public void addIgnoredUser(final UUID uuid) { ignoredUsers.add(uuid); }
+    public void removeIgnoredUser(final UUID uuid) { ignoredUsers.remove(uuid); }
 
     public Map<String, UUID> getGroups() { return groups; }
     public UUID getGroup(final String name) { return groups.get(name); }
@@ -131,8 +145,7 @@ public class User extends Focusable{
 
     // Focusable stuff
     @Override
-    public String getName() { return name; }
-    public void setName(final String name) { this.name = name; }
+    public String getName() { return getPlayer().getDisplayName(); }
 
     @Override
     public UUID getUUID() { return uuid; }
@@ -151,16 +164,62 @@ public class User extends Focusable{
                 ChatColor.GOLD + "] >> [" + ChatColor.RED + "You" + ChatColor.GOLD + "] : " +
                 ChatColor.RESET + message;
 
+        //Sending the message to the sender.
+        super.sendMessageSender(sender, this, message);
+
+        //Checking if the ignoredUsers contains the sender.
+        if (ignoredUsers.contains(sender.getUUID())) return;
+
+        //Sending the message to spies.
+        super.sendMessageSpies(sender, this, message);
+
         //Sending the message to both target player and sender player.
         player.sendMessage(finalMessage);
 
         //Sending a hotbar message to the focused player.
         PacketUtils.sendHotbarMessage(player, finalMessage);
 
-        //Sending the message to the sender.
-        super.sendMessageSender(sender, this, message);
-
-        //Sending the message to spies.
-        super.sendMessageSpies(sender, this, message);
+        //Setting the messagedBy.
+        messagedBy = sender;
     }
+
+    // Mutable stuff
+    @Override
+    public byte getMuteState() { return muteState; }
+
+    @Override
+    public boolean isSoftMuted() { return muteState == 0x01; }
+
+    @Override
+    public boolean isHardMuted() { return muteState == 0x02; }
+
+    @Override
+    public void softMute(boolean softMuted) {
+
+        if (softMuted) {
+            muteState = 0x01;
+        } else {
+            muteState = 0x00;
+        }
+    }
+
+    @Override
+    public void hardMute(boolean hardMuted) {
+
+        if (hardMuted) {
+            muteState = 0x02;
+        } else {
+            muteState = 0x00;
+        }
+    }
+
+    @Override
+    public long getMuteEnd() { return muteEnd; }
+    @Override
+    public void setMuteEnd(long muteEnd) { this.muteEnd = muteEnd; }
+
+    @Override
+    public String getMuteReason() { return muteReason; }
+    @Override
+    public void setMuteReason(String muteReason) { this.muteReason = muteReason; }
 }

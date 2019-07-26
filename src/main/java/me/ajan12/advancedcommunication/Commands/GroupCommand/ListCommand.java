@@ -26,7 +26,7 @@ class ListCommand {
                 final String list = GroupUtils.listGroups((Player) player);
 
                 //Sending the message containing the groups the player is in.
-                player.sendMessage(pluginTag + ChatColor.GREEN + " The groups you are in: " + ChatColor.YELLOW + list);
+                player.sendMessage(pluginTag + ChatColor.GREEN + " The groups you are in" + ChatColor.AQUA + ": " + ChatColor.YELLOW + list);
 
                 //Returning true because we don't want to show the command usage.
                 return true;
@@ -55,7 +55,7 @@ class ListCommand {
                 final String list = GroupUtils.listGroups(target);
 
                 //Sending the message containing the groups the target is in.
-                player.sendMessage(pluginTag + ChatColor.GREEN + " The groups you are in: " + ChatColor.YELLOW + list);
+                player.sendMessage(pluginTag + ChatColor.GREEN + " The groups you are in" + ChatColor.AQUA + ": " + ChatColor.YELLOW + list);
                 return true;
             }
         }

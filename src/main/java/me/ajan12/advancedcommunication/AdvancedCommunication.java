@@ -1,14 +1,19 @@
 package me.ajan12.advancedcommunication;
 
 import me.ajan12.advancedcommunication.Commands.GroupCommand.GroupCommand;
+import me.ajan12.advancedcommunication.Commands.HardMuteCommand.HardMuteCommand;
+import me.ajan12.advancedcommunication.Commands.IgnoreCommand.IgnoreCommand;
 import me.ajan12.advancedcommunication.Commands.MainCommand.MainCommand;
 import me.ajan12.advancedcommunication.Commands.MessageCommand.MessageCommand;
+import me.ajan12.advancedcommunication.Commands.ReplyCommand.ReplyCommand;
+import me.ajan12.advancedcommunication.Commands.SoftMuteCommand.SoftMuteCommand;
 import me.ajan12.advancedcommunication.Listeners.PlayerChatEvent;
 import me.ajan12.advancedcommunication.Listeners.PlayerJoinEvent;
 import me.ajan12.advancedcommunication.Listeners.ProtocolLibEvents;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
 import me.ajan12.advancedcommunication.Utilities.DatabaseUtils.SQLiteUtils;
 import me.ajan12.advancedcommunication.Utilities.GroupUtils;
+import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -61,18 +66,32 @@ public final class AdvancedCommunication extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinEvent(), this);
 
         //Registering the commands.
-        getCommand("message").setExecutor(new MessageCommand());
-        getCommand("group").setExecutor(new GroupCommand());
         getCommand("advancedcommunication").setExecutor(new MainCommand());
+        getCommand("message").setExecutor(new MessageCommand());
+        getCommand("reply").setExecutor(new ReplyCommand());
+        getCommand("ignore").setExecutor(new IgnoreCommand());
+        getCommand("group").setExecutor(new GroupCommand());
+        getCommand("softmute").setExecutor(new SoftMuteCommand());
+        getCommand("hardmute").setExecutor(new HardMuteCommand());
 
         //Registering packet listeners.
         ProtocolLibEvents.registerListeners();
 
         //Importing the groups.
-        SQLiteUtils.importData();
+        GroupUtils.importGroups();
+        //Importing the users.
+        UserUtils.importUsers();
 
         //Purging the groups.
         GroupUtils.purgeGroups();
+
+        //Saving data every 5 mins.
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            //Saving the groups.
+            GroupUtils.saveGroups();
+            //Saving the users.
+            UserUtils.saveUsers();
+        }, 6000, 6000);
     }
 
     @Override
@@ -80,6 +99,8 @@ public final class AdvancedCommunication extends JavaPlugin {
 
         //Saving the groups.
         GroupUtils.saveGroups();
+        //Saving the users.
+        UserUtils.saveUsers();
 
         //Purging SQLiteUtils to remove any leftovers.
         SQLiteUtils.purgeLocalCache();
@@ -89,7 +110,6 @@ public final class AdvancedCommunication extends JavaPlugin {
 
         //Removing instance to prevent data corruption and memory leak.
         instance = null;
-
     }
 
     //The Getter for the plugin instance.

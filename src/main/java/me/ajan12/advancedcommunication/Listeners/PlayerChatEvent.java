@@ -4,8 +4,8 @@ import me.ajan12.advancedcommunication.Objects.Focusable;
 import me.ajan12.advancedcommunication.Objects.MentionedMessage;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
-import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import me.ajan12.advancedcommunication.Utilities.PacketUtils;
+import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -34,8 +34,6 @@ public class PlayerChatEvent implements Listener {
         final Player sender = e.getPlayer();
         //Getting the User the message sender corresponds to.
         final User user = UserUtils.getUser(sender);
-        //Checking if the User is null.
-        if (user == null) return;
 
         //Getting the focused.
         final Focusable target = user.getFocused();
@@ -109,5 +107,46 @@ public class PlayerChatEvent implements Listener {
 
         //Creating and adding a new MentionedMessage.
         DataStorage.messages.add(new MentionedMessage(playerMentions, total));
+    }
+
+    //Priority is HIGH because we want the other plugins to do their jobs first.
+    //This listener is for Ignoring feature.
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onChat_Ignoring(final AsyncPlayerChatEvent e) {
+
+        //Iterating over the online players to check the ignoring status.
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+
+            //Getting the User of the sender.
+            final User user = UserUtils.getUser(player);
+
+            //Checking if the user is ignoring the sender.
+            if (user.getIgnoredUsers().contains(e.getPlayer().getUniqueId())) e.getRecipients().remove(player);
+        }
+    }
+
+    //Priority is HIGH because we want the other plugins to do their jobs first.
+    //This listener is for SoftMute and HardMute(mute) features.
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onChat_Mute(final AsyncPlayerChatEvent e) {
+
+        //Getting the User of the sender of the chat message.
+        final User user = UserUtils.getUser(e.getPlayer());
+
+        //Checking if the user is hard muted.
+        if (user.isHardMuted()) {
+
+            //Cancelling the event.
+            e.setCancelled(true);
+            //Feedbacking the user about that they cannot talk while muted.
+            user.getPlayer().sendMessage(DataStorage.pluginTag + ChatColor.DARK_RED + " You cannot talk while muted!");
+        //Checking if the user is soft muted.
+        } else if (user.isSoftMuted()) {
+
+            //Removing all the recipients of this chat message.
+            for (Player recipient : e.getRecipients()) {
+                e.getRecipients().remove(recipient);
+            }
+        }
     }
 }

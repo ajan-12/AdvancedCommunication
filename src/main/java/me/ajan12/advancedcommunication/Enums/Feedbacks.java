@@ -8,6 +8,13 @@ import org.bukkit.ChatColor;
  */
 public enum Feedbacks {
 
+    //Ignore command errors.
+    NONE_IGNORED(DataStorage.pluginTag + ChatColor.DARK_RED + " You aren't ignoring anyone."),
+    SELF_IGNORE(DataStorage.pluginTag + ChatColor.DARK_RED + " You cannot ignore yourself."),
+
+    //Reply command errors.
+    NOT_MESSAGED_BY(DataStorage.pluginTag + ChatColor.DARK_RED + " You haven't been messaged by anoyone recently."),
+
     //Group creation errors.
     BANNED_NAME(DataStorage.pluginTag + ChatColor.DARK_RED + " The specified group name is banned."),
     USED_NAME(DataStorage.pluginTag + ChatColor.DARK_RED + " The specified group name is already used."),

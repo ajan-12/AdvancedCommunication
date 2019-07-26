@@ -13,13 +13,32 @@ commands:
 
   group:
     description: Main command to access group features.
-    aliases: [gr, groups]
+    aliases: [g, gr, groups]
     usage: /group help
 
   message:
     description: Start a messaging session or send a single message to another player!
     aliases: [msg, privatemessage, private-message, pmsg, dm, dmsg, directmessage, direct-message]
     usage: /message help
+
+  reply:
+    description: Send a message to the last person you messaged.
+    aliases: [r]
+    usage: /reply help
+
+  ignore:
+    description: Toggles the ignoring state of a player for another player.
+    usage: /ignore help
+
+  softmute:
+    description: Softmutes or un-softmutes a player.
+    aliases: [sm, softm, smute]
+    usage: /softmute help
+
+  hardmute:
+    description: Hardmutes or un-hardmutes a player.
+    aliases: [hm, hardm, hmute, mute]
+    usage: /hardmute help
 
 permissions:
 
@@ -32,6 +51,16 @@ permissions:
   advancedcommunication.command.group.create:
     description: The permission node that defines if a player is able to create a group.
     default: true
+
+  #### Softmute command
+  advancedcommunication.command.softmute:
+    description: The permission node that defines if a player can use softmute command.
+    default: op
+
+  #### Hardmute command
+  advancedcommunication.command.hardmute:
+    description: The permission node that defines if a player can use hardmute command.
+    default: op
 
   #### Saving/Purging commands
   advancedcommunication.command.save.groups:

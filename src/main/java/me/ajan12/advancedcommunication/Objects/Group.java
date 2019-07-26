@@ -1,6 +1,5 @@
 package me.ajan12.advancedcommunication.Objects;
 
-import me.ajan12.advancedcommunication.Enums.Feedbacks;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
 import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import org.bukkit.Bukkit;
@@ -28,6 +27,8 @@ public class Group extends Focusable {
     //Keys are the members, values show if they are group admin.
     private HashMap<UUID, Boolean> members;
 
+    private HashMap<UUID, Long> slowdown;
+
     //The timestamp that the group was created in.
     private long createdTime;
     //Last timestamp any action occurred in the group.
@@ -43,6 +44,13 @@ public class Group extends Focusable {
         this.description = "A new group created by " + creator + ".";
         this.members = members;
 
+        sendMessages = true;
+        editInfo = true;
+        inSlowdown = false;
+
+        slowdown = new HashMap<>();
+        members.keySet().forEach(uuid -> slowdown.put(uuid, 0L));
+
         createdTime = System.currentTimeMillis();
         lastUpdate = System.currentTimeMillis();
     }
@@ -50,8 +58,8 @@ public class Group extends Focusable {
     /**
      * Used to import a group from the database.
      */
-    public Group(final UUID uuid, final String name, final String description, final boolean sendMessages, final boolean editInfo, final boolean inSlowdown, final HashMap<UUID, Boolean> members, final long createdTime, final long lastUpdate) {
-        this.id = uuid;
+    public Group(final UUID id, final String name, final String description, final boolean sendMessages, final boolean editInfo, final boolean inSlowdown, final HashMap<UUID, Boolean> members, final long createdTime, final long lastUpdate) {
+        this.id = id;
 
         this.groupName = name;
         this.description = description;
@@ -61,6 +69,9 @@ public class Group extends Focusable {
         this.inSlowdown = inSlowdown;
 
         this.members = members;
+
+        this.slowdown = new HashMap<>();
+        members.keySet().forEach(uuid -> slowdown.put(uuid, 0L));
 
         this.createdTime = createdTime;
         this.lastUpdate = lastUpdate;
@@ -97,11 +108,28 @@ public class Group extends Focusable {
     @Override
     public void sendMessage(final Focusable sender, final String message) {
 
+        //Checking if the sender is an User.
+        if (sender instanceof User) {
+
+            //Checking if members can send messages.
+            if (!sendMessages) return;
+            //Checking if the group is in slowdown.
+            if (inSlowdown) {
+
+                //Checking if this member can send this message.
+                if ((slowdown.get(sender.getUUID()) + 20 * 1000) > System.currentTimeMillis()) {
+                    return;
+                } else {
+                    slowdown.replace(sender.getUUID(), System.currentTimeMillis());
+                }
+            }
+        }
+
         //Preparing the message.
         final String finalMessage =
                 ChatColor.GOLD + "[" + ChatColor.AQUA + groupName + ChatColor.GOLD + "] " +
-                ChatColor.AQUA + sender.getName() + ChatColor.DARK_AQUA + " : " +
-                ChatColor.RESET + message;
+                ChatColor.RESET + sender.getName() + ChatColor.DARK_AQUA + " : " +
+                ChatColor.RESET + ChatColor.translateAlternateColorCodes('&', message);
 
         //Sending the message to all of the members of this group.
         members.keySet().forEach(member -> {
@@ -114,7 +142,6 @@ public class Group extends Focusable {
 
         //Sending the message to spies.
         super.sendMessageSpies(sender, this, message);
-
     }
 
     public void broadcast(final String message) {
@@ -129,6 +156,7 @@ public class Group extends Focusable {
             final Player target = Bukkit.getPlayer(member);
             if (target != null) target.sendMessage(finalMessage);
         });
+
         //Updating the lastUpdate
         lastUpdate = System.currentTimeMillis();
     }
@@ -137,10 +165,12 @@ public class Group extends Focusable {
     public String toString() { return getName(); }
 
     // ADDING/REMOVING PLAYERS -----------------------------------------------------------------------------------------
-    public void addMember(final Player player) {
+    public void addMember(final User player) {
 
         //Adding the player to the members.
-        members.put(player.getUniqueId(), false);
+        members.put(player.getUUID(), false);
+        //Adding the group to player's list.
+        player.addGroup(groupName, id);
 
         //Informing the group members.
         broadcast(ChatColor.YELLOW + player.getName() + ChatColor.AQUA + " has joined the group!");
@@ -152,14 +182,6 @@ public class Group extends Focusable {
 
         //Getting the User of the player.
         final User user = UserUtils.getUser(player);
-
-        //Checking if the user was found.
-        if (user == null) {
-
-            //Feedbacking the player.
-            player.sendMessage(Feedbacks.SENDER_USER_NOT_FOUND.toString());
-            return;
-        }
 
         //Removing the player from the database.
         members.remove(player.getUniqueId());
@@ -180,14 +202,6 @@ public class Group extends Focusable {
 
         //Getting the User of the player.
         final User user = UserUtils.getUser(player);
-
-        //Checking if the user was found.
-        if (user == null) {
-
-            //Feedbacking the player.
-            player.sendMessage(Feedbacks.SENDER_USER_NOT_FOUND.toString());
-            return;
-        }
 
         //Removing the group from the player.
         user.removeGroup(groupName);

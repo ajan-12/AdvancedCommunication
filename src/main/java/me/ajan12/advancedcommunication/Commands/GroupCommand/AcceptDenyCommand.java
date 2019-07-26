@@ -36,7 +36,7 @@ class AcceptDenyCommand {
                     final Group group = DataStorage.groups.get(user.getInvitedGroup());
 
                     //Adding the member to the group.
-                    group.addMember((Player) sender);
+                    group.addMember(user);
 
                     //Removing the invitation.
                     user.setInvited(false);

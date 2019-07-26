@@ -4,6 +4,7 @@ import me.ajan12.advancedcommunication.AdvancedCommunication;
 import me.ajan12.advancedcommunication.Objects.Group;
 import me.ajan12.advancedcommunication.Objects.User;
 import me.ajan12.advancedcommunication.Utilities.DataStorage;
+import me.ajan12.advancedcommunication.Utilities.UserUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -13,10 +14,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class SQLiteUtils {
 
@@ -49,15 +47,15 @@ public class SQLiteUtils {
             final Connection connection = DriverManager.getConnection(jdbcUrl);
 
             //Creating the groups table.
-            connection.prepareStatement("CREATE TABLE IF NOT EXISTS groups(uuid BLOB PRIMARY KEY, name VARCHAR(32), description VARCHAR(200), settings VARCHAR(3), creationTime INTEGER, lastUpdate INTEGER)").executeUpdate();
+            connection.prepareStatement("CREATE TABLE IF NOT EXISTS groups(uuid TEXT PRIMARY KEY, name VARCHAR(32), description VARCHAR(200), settings VARCHAR(3), creationTime INTEGER, lastUpdate INTEGER)").executeUpdate();
 
             //Creating the main users table.
-            connection.prepareStatement("CREATE TABLE IF NOT EXISTS users(userUUID BLOB)").executeUpdate();
+            connection.prepareStatement("CREATE TABLE IF NOT EXISTS users(userUUID TEXT, ignoredUsers TEXT, muteState INT, muteEnd INT, muteReason TEXT)").executeUpdate();
 
             //Creating the users tables.
             for (int i = 1; i <= AdvancedCommunication.getInstance().getConfig().getInt("user-tables"); i++) {
                 //Creating the "users + i" table.
-                connection.prepareStatement("CREATE TABLE IF NOT EXISTS users" + i + "(userUUID BLOB PRIMARY KEY, groupUUID BLOB, isAdmin VARCHAR(1))").executeUpdate();
+                connection.prepareStatement("CREATE TABLE IF NOT EXISTS users" + i + "(userUUID TEXT PRIMARY KEY, groupUUID TEXT, isAdmin VARCHAR(1))").executeUpdate();
             }
 
             //Closing the connection.
@@ -72,19 +70,9 @@ public class SQLiteUtils {
     }
 
     /**
-     * Imports all the data in the database to DataStorage.
-     */
-    public static void importData() {
-        //Importing the groups.
-        importGroups();
-        //Importing the users.
-        importUsers();
-    }
-
-    /**
      * Imports the users in the database to DataStorage.
      */
-    private static void importUsers() {
+    public static void importUsers() {
         try {
 
             //Getting the pluginTag to ease my work.
@@ -93,13 +81,49 @@ public class SQLiteUtils {
             //Connecting to the database.
             final Connection connection = DriverManager.getConnection(jdbcUrl);
 
-            //Creating the hashset that will contain the all user's UUID's.
-            final HashSet<UUID> userUUIDs = new HashSet<>();
+            //Creating the hashmap that will contain the all users' ignored users.
+            final HashMap<UUID, HashSet<UUID>> users = new HashMap<>();
+            //Creating the hashmap that will contain the all users' mute states.
+            final HashMap<UUID, Byte> muteStates = new HashMap<>();
+            //Creating the hashmap that will contain the all users' mute ends.
+            final HashMap<UUID, Long> muteEnds = new HashMap<>();
+            //Creating the hashmap that will contain the all users' mute reasons.
+            final HashMap<UUID, String> muteReasons = new HashMap<>();
+
             //Getting the user UUIDs.
             final ResultSet usersRS = connection.prepareStatement("SELECT * FROM users").executeQuery();
             //Iterating over the user UUIDs.
             while (usersRS.next()) {
-                userUUIDs.add(UUID.fromString(usersRS.getBlob("uuid").toString()));
+
+                //Creating a hashset with the ignored users of this User.
+                final HashSet<UUID> ignoredUsersValue = new HashSet<>();
+                final String queriedIgnoredUsers = usersRS.getString("ignoredUsers");
+                //Checking if the user was ignoring anyone.
+                if (!queriedIgnoredUsers.equalsIgnoreCase("none")) {
+
+                    //Splitting the string to the uuids inside it.
+                    final String[] uuids = queriedIgnoredUsers.split(";");
+                    //Iterating over the uuids.
+                    for (final String uuid : uuids) {
+
+                        //Checking if the uuid matches an UUID.
+                        if (uuid.matches("([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")) {
+                            //Adding this ignoredUser to the hashset.
+                            ignoredUsersValue.add(UUID.fromString(uuid));
+                        }
+                    }
+                }
+
+                final UUID user = UUID.fromString(usersRS.getString("userUUID"));
+
+                //Adding this user to users hashmap.
+                users.put(user, ignoredUsersValue);
+                //Adding this user to muteStates hashmap.
+                muteStates.put(user, (byte) usersRS.getInt("muteState"));
+                //Adding this user to muteEnds hashmap.
+                muteEnds.put(user, usersRS.getLong("muteEnd"));
+                //Adding this user to muteReasons hashmap.
+                muteReasons.put(user, usersRS.getString("muteReason"));
             }
             //Closing the usersRS as we're done with it.
             usersRS.close();
@@ -110,10 +134,14 @@ public class SQLiteUtils {
             //Iterating over all the user tables.
             for (int i = 1; i <= AdvancedCommunication.getInstance().getConfig().getInt("user-tables"); i++) {
                 //Iterating over all the user UUIDs.
-                for (final UUID userUUID : userUUIDs) {
+                for (final UUID userUUID : users.keySet()) {
+                    total++;
+
+                    //Checking if the user already exists in the DataStorage.
+                    if (UserUtils.findUser(userUUID)) continue;
 
                     //Getting the users in the "users + i" table.
-                    final ResultSet resultSet = connection.prepareStatement("SELECT * FROM users" + i + " WHERE userUUID='" + userUUID.toString() + "'").executeQuery();
+                    final ResultSet resultSet = connection.prepareStatement("SELECT * FROM users" + i + " WHERE userUUID = '" + userUUID.toString() + "'").executeQuery();
 
                     //Creating the hashmap that contains the groups this user is in.
                     final HashMap<String, UUID> groups = new HashMap<>();
@@ -122,7 +150,7 @@ public class SQLiteUtils {
                     while (resultSet.next()) {
 
                         //Getting the user information that we need in the row.
-                        final UUID groupUUID = UUID.fromString(resultSet.getBlob("groupUUID").toString());
+                        final UUID groupUUID = UUID.fromString(resultSet.getString("groupUUID"));
                         final boolean isAdmin = resultSet.getString("isAdmin").equals("T");
 
                         //Getting the group we're at.
@@ -130,16 +158,15 @@ public class SQLiteUtils {
                         //Adding this user as a member to the group.
                         group.addMember(userUUID, isAdmin);
 
-                        //Adding this group to user's group map.
+                        //Adding this group to user's groups map.
                         groups.put(group.getName(), groupUUID);
                     }
 
                     //Creating the User and saving it to DataStorage.
-                    final User user = new User(null, userUUID, groups);
-                    DataStorage.addUser(user);
+                    final User newUser = new User(userUUID, new ArrayList<>(users.get(userUUID)), groups, muteStates.get(userUUID), muteEnds.get(userUUID), muteReasons.get(userUUID));
+                    DataStorage.addUser(newUser);
 
                     //Increasing the variables we'll use for feedbacking the console.
-                    total = resultSet.getRow();
                     done++;
 
                     //Closing the resultSet as we're done with it.
@@ -151,7 +178,7 @@ public class SQLiteUtils {
             connection.close();
 
             //Feedbacking the console.
-            Bukkit.getConsoleSender().sendMessage(pluginTag + ChatColor.AQUA + " Finished importing the groups.");
+            Bukkit.getConsoleSender().sendMessage(pluginTag + ChatColor.AQUA + " Finished importing the users.");
             Bukkit.getConsoleSender().sendMessage(pluginTag + ChatColor.AQUA + " Imported " + ChatColor.YELLOW + done + ChatColor.AQUA + " out of " + ChatColor.YELLOW + total + ChatColor.AQUA + " users.");
 
         //Catching any SQLException's that may have thrown while connecting.
@@ -173,15 +200,6 @@ public class SQLiteUtils {
             //Connecting to the database.
             final Connection connection = DriverManager.getConnection(jdbcUrl);
 
-            //Clearing the main users table.
-            connection.prepareStatement("DELETE FROM users").executeUpdate();
-
-            //Iterating over all the user tables.
-            for (int i = 1; i <= AdvancedCommunication.getInstance().getConfig().getInt("user-tables"); i++) {
-                //Clearing the "users + i" table.
-                connection.prepareStatement("DELETE FROM users" + i).executeUpdate();
-            }
-
             //The amount of users saved/rows affected.
             int savedUsers = 0;
 
@@ -190,14 +208,43 @@ public class SQLiteUtils {
             //Iterating over all the users that will be saved.
             for (final User user : users) {
 
+                //Removing this user from users + i table.
+                connection.prepareStatement("DELETE FROM users WHERE userUUID = '" + user.getUUID().toString() + "'").executeUpdate();
+
+                //Iterating over all the user tables.
+                for (int i = 1; i <= AdvancedCommunication.getInstance().getConfig().getInt("user-tables"); i++) {
+                    //Removing this user from users + i table.
+                    connection.prepareStatement("DELETE FROM users" + i  + " WHERE userUUID = '" + user.getUUID().toString() + "'").executeUpdate();
+                }
+
+                //The String containing UUIDs of the users this user ignores.
+                String ignoredUsers;
+                //Checking if the user is ignoring anyone.
+                if (user.getIgnoredUsers().size() > 0) {
+
+                    //Constructing the ignoredUsers String.
+                    final StringBuilder ignoredUsersBuilder = new StringBuilder(user.getIgnoredUsers().get(0).toString());
+                    for (final UUID ignoredUser : user.getIgnoredUsers()) {
+                        //Adding this ignoredUser to the builder.
+                        ignoredUsersBuilder.append(";").append(ignoredUser.toString());
+                    }
+
+                    //Saving the String.
+                    ignoredUsers = ignoredUsersBuilder.toString();
+                } else {
+
+                    //Setting the ignoredUsers to "none".
+                    ignoredUsers = "none";
+                }
+
                 //Saving the user to the main users table.
-                connection.prepareStatement("INSERT INTO users (uuid) VALUES ('" + user.getPlayer() + "')").executeUpdate();
+                connection.prepareStatement("INSERT INTO users (userUUID, ignoredUsers, muteState, muteEnd, muteReason) VALUES ('" + user.getUUID().toString() + "', '" + ignoredUsers + "', '" + user.getMuteState() + "', '" + user.getMuteEnd() + "', '" + user.getMuteReason() + "')").executeUpdate();
 
                 //Increasing the table.
                 table++;
 
                 //Iterating over the player's groups.
-                for (final Map.Entry<String, UUID> entry :  user.getGroups().entrySet()) {
+                for (final Map.Entry<String, UUID> entry : user.getGroups().entrySet()) {
                     //Getting the Group we're at.
                     final Group group = DataStorage.groups.get(entry.getValue());
 
@@ -205,7 +252,8 @@ public class SQLiteUtils {
                     final String isAdmin = group.getMembers().get(user.getUUID()) ? "T" : "F";
 
                     //Saving this entry.
-                    savedUsers += connection.prepareStatement("INSERT INTO users" + table + " (userUUID,groupUUID,isAdmin) VALUES ('" + user.getPlayer().toString() + "','" + group.getUUID().toString() + "','" + isAdmin + "')").executeUpdate();
+                    connection.prepareStatement("INSERT INTO users" + table + " (userUUID,groupUUID,isAdmin) VALUES ('" + user.getUUID().toString() + "','" + group.getUUID().toString() + "','" + isAdmin + "')").executeUpdate();
+                    savedUsers++;
                 }
 
                 //Checking if this is the max value table can get, if so we reset it to 0 for cycle to continue.
@@ -218,7 +266,7 @@ public class SQLiteUtils {
             connection.close();
 
             //Informing the server console.
-            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully saved " + ChatColor.YELLOW + savedUsers + ChatColor.GREEN + " out of " + ChatColor.YELLOW + users.size() + ChatColor.GREEN + " queued.");
+            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully saved " + ChatColor.YELLOW + savedUsers + ChatColor.GREEN + " out of " + ChatColor.YELLOW + users.size() + ChatColor.GREEN + " users queued.");
 
         //Catching any SQLException's that may have thrown while connecting.
         } catch (SQLException e) {
@@ -246,12 +294,12 @@ public class SQLiteUtils {
             for (final User user : users) {
 
                 //Deleting the user from the main users table.
-                purgedUsers += connection.prepareStatement("DELETE FROM users WHERE userUUID='" + user.getPlayer().toString() + "'").executeUpdate();
+                purgedUsers += connection.prepareStatement("DELETE FROM users WHERE userUUID = '" + user.getUUID().toString() + "'").executeUpdate();
 
                 //Deleting the user from the user tables.
                 for (int i = 1; i <= AdvancedCommunication.getInstance().getConfig().getInt("user-tables"); i++) {
                     //Deleting this user from this users table.
-                    connection.prepareStatement("DELETE FROM users" + i + " WHERE userUUID='" + user.getPlayer().toString() + "'").executeUpdate();
+                    connection.prepareStatement("DELETE FROM users" + i + " WHERE userUUID = '" + user.getUUID().toString() + "'").executeUpdate();
                 }
             }
 
@@ -259,7 +307,7 @@ public class SQLiteUtils {
             connection.close();
 
             //Informing the server console.
-            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully purged " + ChatColor.YELLOW + purgedUsers + ChatColor.GREEN + " out of " + ChatColor.YELLOW + users.size() + ChatColor.GREEN + " queued.");
+            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully purged " + ChatColor.YELLOW + purgedUsers + ChatColor.GREEN + " out of " + ChatColor.YELLOW + users.size() + ChatColor.GREEN + " users queued.");
 
         //Catching any SQLException's that may have thrown while connecting.
         } catch (SQLException e) {
@@ -272,7 +320,7 @@ public class SQLiteUtils {
     /**
      * Imports the groups in the database to DataStorage.
      */
-    private static void importGroups() {
+    public static void importGroups() {
         try {
             //Getting the pluginTag to ease my work.
             final String pluginTag = DataStorage.pluginTag;
@@ -291,9 +339,13 @@ public class SQLiteUtils {
             int done = 0;
             //Iterating over the groups got from the database.
             while (resultSet.next()) {
+                total++;
 
                 //Getting the group information in the row of the group.
-                final UUID uuid = UUID.fromString(resultSet.getBlob("uuid").toString());
+                final UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+
+                //Checking if the group is already in the memory.
+                if (DataStorage.groups.containsKey(uuid)) continue;
 
                 final String name = resultSet.getString("name");
                 final String description = resultSet.getString("description");
@@ -330,7 +382,6 @@ public class SQLiteUtils {
                 //Adding the group to DataStorage.
                 DataStorage.addGroup(group);
 
-                total = resultSet.getRow();
                 done++;
             }
 
@@ -361,14 +412,14 @@ public class SQLiteUtils {
             //Connecting to the database.
             final Connection connection = DriverManager.getConnection(jdbcUrl);
 
-            //Clearing the groups table.
-            connection.prepareStatement("DELETE FROM groups").executeUpdate();
-
             //The amount of groups purged/rows affected.
             int purgedGroups = 0;
 
             //Iterating over all the groups that will be saved.
             for (final Group group : groups) {
+
+                //Removing this group from the groups table.
+                connection.prepareStatement("DELETE FROM groups WHERE uuid = '" + group.getUUID().toString() + "'").executeUpdate();
 
                 //Starting the sql.
                 final StringBuilder sql = new StringBuilder("INSERT INTO groups (uuid,name,description,settings,creationTime,lastUpdate) VALUES ('" + group.getUUID().toString() + "','" + group.getName() + "','" + group.getDescription() + "','");
@@ -399,7 +450,7 @@ public class SQLiteUtils {
             connection.close();
 
             //Informing the server console.
-            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully saved " + ChatColor.YELLOW + purgedGroups + ChatColor.GREEN + " out of " + ChatColor.YELLOW + groups.size() + ChatColor.GREEN + " queued.");
+            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully saved " + ChatColor.YELLOW + purgedGroups + ChatColor.GREEN + " out of " + ChatColor.YELLOW + groups.size() + ChatColor.GREEN + " groups queued.");
 
         //Catching any SQLException's that may have thrown while connecting.
         } catch (SQLException e) {
@@ -427,14 +478,14 @@ public class SQLiteUtils {
             for (final Group group : groups) {
 
                 //Deleting the group from database.
-                purgedGroups += connection.prepareStatement("DELETE FROM groups WHERE uuid='" + group.getUUID().toString() + "'").executeUpdate();
+                purgedGroups += connection.prepareStatement("DELETE FROM groups WHERE uuid = " + group.getUUID().toString()).executeUpdate();
             }
 
             //Closing the connection. This also saves the database from memory to disc.
             connection.close();
 
             //Informing the server console.
-            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully purged " + ChatColor.YELLOW + purgedGroups + ChatColor.GREEN + " out of " + ChatColor.YELLOW + groups.size() + ChatColor.GREEN + " queued.");
+            Bukkit.getConsoleSender().sendMessage(DataStorage.pluginTag + ChatColor.GREEN + " Successfully purged " + ChatColor.YELLOW + purgedGroups + ChatColor.GREEN + " out of " + ChatColor.YELLOW + groups.size() + ChatColor.GREEN + " groups queued.");
 
         //Catching any SQLException's that may have thrown while connecting.
         } catch (SQLException e) {
